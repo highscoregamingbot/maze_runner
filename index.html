@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity Web Player | Maze</title>
+    <title>Unity Web Player | Mazerunner</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
   </head>
@@ -20,7 +20,7 @@
       <div id="unity-footer">
         <div id="unity-logo-title-footer"></div>
         <div id="unity-fullscreen-button"></div>
-        <div id="unity-build-title">Maze</div>
+        <div id="unity-build-title">Mazerunner</div>
       </div>
     </div>
     <script>
@@ -52,15 +52,15 @@
       }
 
       var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/Mazerunner.loader.js";
+      var loaderUrl = buildUrl + "/Mazerunner-tg-webapp.loader.js";
       var config = {
         arguments: [],
-        dataUrl: buildUrl + "/Mazerunner.data.gz",
-        frameworkUrl: buildUrl + "/Mazerunner.framework.js.gz",
-        codeUrl: buildUrl + "/Mazerunner.wasm.gz",
+        dataUrl: buildUrl + "/Mazerunner-tg-webapp.data",
+        frameworkUrl: buildUrl + "/Mazerunner-tg-webapp.framework.js",
+        codeUrl: buildUrl + "/Mazerunner-tg-webapp.wasm",
         streamingAssetsUrl: "StreamingAssets",
-        companyName: "DefaultCompany",
-        productName: "Maze",
+        companyName: "Highscore Gaming",
+        productName: "Mazerunner",
         productVersion: "0.1",
         showBanner: unityShowBanner,
       };
