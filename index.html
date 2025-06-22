@@ -26,14 +26,14 @@
   </div>
   
   <script>
-    // Haal Telegram WebApp data op als deze er is
+    // Telegram Web App user data ophalen, indien beschikbaar
     window.tgUserData = null;
     if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe) {
       window.tgUserData = Telegram.WebApp.initDataUnsafe;
       console.log("Telegram User Data:", window.tgUserData);
     }
 
-    // Unity loading etc.
+    // Unity loader setup
     var canvas = document.querySelector("#unity-canvas");
     var buildUrl = "Build";
     var loaderUrl = buildUrl + "/Mazerunner-tg-webapp.loader.js";
@@ -67,7 +67,7 @@
       updateBannerVisibility();
     }
 
-    // Mobiel support
+    // Mobile/desktop responsive
     if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
       canvas.className = "unity-mobile";
       document.getElementById("unity-container").className = "unity-mobile";
@@ -78,6 +78,7 @@
 
     document.querySelector("#unity-loading-bar").style.display = "block";
 
+    // Unity loader script + Telegram data push
     var script = document.createElement("script");
     script.src = loaderUrl;
     script.onload = () => {
@@ -89,15 +90,14 @@
           unityInstance.SetFullscreen(1);
         };
 
-        // Zet instance globally voor andere scripts
+        // Maak instance globaal
         window.unityInstance = unityInstance;
 
-        // **Stuur Telegram data naar Unity zodra geladen**
+        // Telegram-data naar Unity pushen
         if (window.tgUserData) {
-          // Standaard GameObject: "TelegramParams", method: "ReceiveTelegramData"
           unityInstance.SendMessage(
-            "TelegramParams",        // Zorg dat dit GameObject bestaat in Unity!
-            "ReceiveTelegramData",   // Zorg dat dit C# public method is
+            "TelegramParams",        // <-- Dit GameObject moet in Unity staan!
+            "ReceiveTelegramData",   // <-- Deze C# method moet public zijn!
             JSON.stringify(window.tgUserData)
           );
         }
