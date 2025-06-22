@@ -30,7 +30,9 @@
     window.tgUserData = null;
     if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe) {
       window.tgUserData = Telegram.WebApp.initDataUnsafe;
-      console.log("Telegram User Data:", window.tgUserData);
+      alert("Telegram User Data: " + JSON.stringify(window.tgUserData));
+    } else {
+      alert("Telegram User Data NIET gevonden! (Niet in Web App context?)");
     }
 
     // Unity loader setup
@@ -78,7 +80,7 @@
 
     document.querySelector("#unity-loading-bar").style.display = "block";
 
-    // Unity loader script + Telegram data push
+    // Unity loader script
     var script = document.createElement("script");
     script.src = loaderUrl;
     script.onload = () => {
@@ -89,18 +91,7 @@
         document.querySelector("#unity-fullscreen-button").onclick = () => {
           unityInstance.SetFullscreen(1);
         };
-
-        // Maak instance globaal
         window.unityInstance = unityInstance;
-
-        // Telegram-data naar Unity pushen
-        if (window.tgUserData) {
-          unityInstance.SendMessage(
-            "TelegramParams",        // <-- Dit GameObject moet in Unity staan!
-            "ReceiveTelegramData",   // <-- Deze C# method moet public zijn!
-            JSON.stringify(window.tgUserData)
-          );
-        }
       }).catch((message) => {
         alert(message);
       });
