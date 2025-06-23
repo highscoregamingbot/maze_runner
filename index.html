@@ -39,14 +39,19 @@
   document.querySelector("#unity-loading-bar").style.display = "block";
 
   function startUnityWithTelegramData() {
+    console.log("Start Unity with Telegram Data");
     const tg = Telegram.WebApp.initDataUnsafe;
+    console.log("Telegram Data:", tg);
+
     const script = document.createElement("script");
     script.src = loaderUrl;
 
     script.onload = () => {
+      console.log("Unity loader.js loaded");
       createUnityInstance(canvas, config, (progress) => {
         document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
       }).then((unityInstance) => {
+        console.log("Unity instance created successfully");
         document.querySelector("#unity-loading-bar").style.display = "none";
         document.querySelector("#unity-fullscreen-button").onclick = () => {
           unityInstance.SetFullscreen(1);
@@ -54,14 +59,17 @@
 
         // ✅ Telegram data doorsturen naar Unity
         if (tg?.user) {
+          console.log("Sending user ID and username to Unity");
           unityInstance.SendMessage("TelegramParams", "SetTelegramId", tg.user.id.toString());
           unityInstance.SendMessage("TelegramParams", "SetUsername", tg.user.username || "");
         }
         if (tg?.chat && tg.chat.id) {
+          console.log("Sending chat ID to Unity");
           unityInstance.SendMessage("TelegramParams", "SetChatId", tg.chat.id.toString());
         }
 
       }).catch((message) => {
+        console.error("Unity instance creation failed:", message);
         alert(message);
       });
     };
@@ -72,6 +80,7 @@
   // Wacht op Telegram WebApp voordat Unity wordt gestart
   window.addEventListener("DOMContentLoaded", () => {
     Telegram.WebApp.ready();
+    console.log("Telegram WebApp is ready, starting Unity shortly...");
     setTimeout(startUnityWithTelegramData, 200); // kleine delay om zeker te zijn dat data beschikbaar is
   });
 </script>
