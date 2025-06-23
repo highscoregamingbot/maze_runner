@@ -9,8 +9,15 @@
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-      // Telegram user data beschikbaar maken in Unity
-      window.TelegramParams = Telegram.WebApp.initDataUnsafe || {};
+      // ✅ Tijdelijke fallback als Telegram initDataUnsafe ontbreekt of leeg is
+      const safeData = Telegram.WebApp?.initDataUnsafe;
+      window.TelegramParams = {
+        id: safeData?.user?.id?.toString() || "111",
+        username: safeData?.user?.username || "tester",
+        chat_id: safeData?.chat?.id?.toString() || "222",
+        first_name: safeData?.user?.first_name || "Voor",
+        last_name: safeData?.user?.last_name || "Achter"
+      };
     </script>
   </head>
   <body>
@@ -31,7 +38,7 @@
     </div>
 
     <script>
-      // Fix voor eerste touch
+      // Fix voor touch input
       window.addEventListener("touchstart", () => {}, { passive: true });
 
       var canvas = document.querySelector("#unity-canvas");
