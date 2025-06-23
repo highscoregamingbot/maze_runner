@@ -46,7 +46,7 @@
     script.src = loaderUrl;
     script.onload = () => {
       createUnityInstance(canvas, config, (progress) => {}).then((unityInstance) => {
-        unityInstance.SendMessage("TelegramParams", "SetTelegramUserData", unityData);
+        unityInstance.SendMessage("TelegramParams", "TelegramParams", unityData);
       });
     };
     document.body.appendChild(script);
