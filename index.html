@@ -25,7 +25,7 @@
 
       #unity-canvas {
         width: 100vw;
-        height: 300px; /* Start klein */
+        height: 500px; /* Start klein */
         transition: height 0.5s ease;
         background: #222;
       }
@@ -96,7 +96,8 @@
       };
 
       document.getElementById("play-button").addEventListener("click", function () {
-        canvas.style.height = window.innerHeight + "px"; // Volledige schermhoogte
+        //canvas.style.height = window.innerHeight + "px"; // Volledige schermhoogte
+        unityInstance.SetFullscreen(1);
         document.getElementById("play-button-container").style.display = "none"; // Verberg knop
       });
 
