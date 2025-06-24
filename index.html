@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-      // Telegram user data alvast beschikbaar maken (optioneel, wordt straks ook naar Unity gestuurd)
+      // Telegram user data beschikbaar maken in Unity
       window.TelegramParams = Telegram.WebApp.initDataUnsafe || {};
     </script>
   </head>
@@ -31,14 +31,14 @@
     </div>
 
     <script>
-      // ✅ Touch input fix (voor Telegram browser)
+      // Fix voor eerste touch
       window.addEventListener("touchstart", () => {}, { passive: true });
 
-      const canvas = document.querySelector("#unity-canvas");
-      const buildUrl = "Build";
-      const loaderUrl = buildUrl + "/mazerunner.loader.js";
+      var canvas = document.querySelector("#unity-canvas");
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/mazerunner.loader.js";
 
-      const config = {
+      var config = {
         dataUrl: buildUrl + "/mazerunner.data",
         frameworkUrl: buildUrl + "/mazerunner.framework.js",
         codeUrl: buildUrl + "/mazerunner.wasm",
@@ -50,16 +50,16 @@
       };
 
       function unityShowBanner(msg, type) {
-        const warningBanner = document.querySelector("#unity-warning");
+        var warningBanner = document.querySelector("#unity-warning");
         function updateBannerVisibility() {
           warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
         }
-        const div = document.createElement('div');
+        var div = document.createElement('div');
         div.innerHTML = msg;
-        if (type === 'error') div.style = 'background: red; padding: 10px;';
-        else if (type === 'warning') div.style = 'background: yellow; padding: 10px;';
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
         warningBanner.appendChild(div);
-        if (type !== 'error') {
+        if (type != 'error') {
           setTimeout(() => {
             warningBanner.removeChild(div);
             updateBannerVisibility();
@@ -70,7 +70,7 @@
 
       document.querySelector("#unity-loading-bar").style.display = "block";
 
-      const script = document.createElement("script");
+      var script = document.createElement("script");
       script.src = loaderUrl;
       script.onload = () => {
         createUnityInstance(canvas, config, (progress) => {
@@ -80,20 +80,6 @@
           document.querySelector("#unity-fullscreen-button").onclick = () => {
             unityInstance.SetFullscreen(1);
           };
-
-          // ✅ Telegram initData ophalen
-          const initData = Telegram.WebApp.initDataUnsafe || {};
-
-          const telegramId = initData.user?.id || "";
-          const username = initData.user?.username || "";
-          const firstName = initData.user?.first_name || "";
-          const lastName = initData.user?.last_name || "";
-          const chatId = initData.chat?.id || new URLSearchParams(window.location.search).get("chat_id") || "";
-
-          // ✅ Combineer en stuur naar Unity
-          const unityData = `${telegramId};${username};${chatId};${firstName};${lastName}`;
-          unityInstance.SendMessage("TelegramParams", "SetTelegramUserData", unityData);
-
         }).catch((message) => {
           alert(message);
         });
