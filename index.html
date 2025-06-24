@@ -1,91 +1,140 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Maze Runner</title>
-    <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css">
-    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script>
-      // Telegram user data beschikbaar maken in Unity
-      window.TelegramParams = Telegram.WebApp.initDataUnsafe || {};
-    </script>
-  </head>
-  <body>
-    <div id="unity-container" class="unity-mobile">
-      <canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
-      <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
-        <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full"></div>
-        </div>
-      </div>
-      <div id="unity-warning"></div>
-      <div id="unity-footer">
-        <div id="unity-logo-title-footer"></div>
-        <div id="unity-fullscreen-button"></div>
-        <div id="unity-build-title">Maze</div>
-      </div>
-    </div>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Maze Runner</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+      #unity-canvas {
+        width: 100%;
+        height: 300px; /* 👈 Start kleiner */
+        transition: height 0.5s ease;
+      }
 
-    <script>
-      // Fix voor eerste touch
-      window.addEventListener("touchstart", () => {}, { passive: true });
+      #play-button-container {
+        text-align: center;
+        margin-top: 10px;
+      }
 
-      var canvas = document.querySelector("#unity-canvas");
-      var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/mazerunner.loader.js";
+      #play-button {
+        padding: 10px 20px;
+        font-size: 18px;
+        cursor: pointer;
+        border-radius: 8px;
+        border: none;
+        background-color: #007AFF;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="unity-container" class="unity-desktop">
+      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+      <div id="unity-warning"></div>
+      <div id="unity-footer">
+        <div id="unity-logo-title-footer"></div>
+        <div id="unity-fullscreen-button"></div>
+        <div id="unity-build-title">Maze</div>
+      </div>
+    </div>
 
-      var config = {
-        dataUrl: buildUrl + "/mazerunner.data",
-        frameworkUrl: buildUrl + "/mazerunner.framework.js",
-        codeUrl: buildUrl + "/mazerunner.wasm",
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "Highscore Gaming",
-        productName: "Maze",
-        productVersion: "0.1",
-        showBanner: unityShowBanner,
-      };
+    <!-- ✅ Play knop -->
+    <div id="play-button-container">
+      <button id="play-button">Play</button>
+    </div>
 
-      function unityShowBanner(msg, type) {
-        var warningBanner = document.querySelector("#unity-warning");
-        function updateBannerVisibility() {
-          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
-        }
-        var div = document.createElement('div');
-        div.innerHTML = msg;
-        if (type == 'error') div.style = 'background: red; padding: 10px;';
-        else if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-        warningBanner.appendChild(div);
-        if (type != 'error') {
-          setTimeout(() => {
-            warningBanner.removeChild(div);
-            updateBannerVisibility();
-          }, 5000);
-        }
-        updateBannerVisibility();
-      }
+    <script>
+      var canvas = document.querySelector("#unity-canvas");
 
-      document.querySelector("#unity-loading-bar").style.display = "block";
+      function unityShowBanner(msg, type) {
+        var warningBanner = document.querySelector("#unity-warning");
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        }
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
 
-      var script = document.createElement("script");
-      script.src = loaderUrl;
-      script.onload = () => {
-        createUnityInstance(canvas, config, (progress) => {
-          document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
-        }).then((unityInstance) => {
-          document.querySelector("#unity-loading-bar").style.display = "none";
-          document.querySelector("#unity-fullscreen-button").onclick = () => {
-            unityInstance.SetFullscreen(1);
-          };
-        }).catch((message) => {
-          alert(message);
-        });
-      };
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/mazerunner.loader.js";
+      var config = {
+        dataUrl: buildUrl + "/mazerunner.data",
+        frameworkUrl: buildUrl + "/mazerunner.framework.js",
+        codeUrl: buildUrl + "/mazerunner.wasm",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "Highscore Gaming",
+        productName: "Maze",
+        productVersion: "0.1",
+        showBanner: unityShowBanner,
+      };
 
-      document.body.appendChild(script);
-    </script>
-  </body>
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        document.querySelector("#unity-container").className = "unity-mobile";
+        canvas.className = "unity-mobile";
+      } else {
+        canvas.style.width = "960px";
+        // canvas.style.height = "600px"; // 👈 niet nodig, wordt nu door CSS gedaan
+      }
+
+      document.querySelector("#unity-loading-bar").style.display = "block";
+
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
+        }).then((unityInstance) => {
+          document.querySelector("#unity-loading-bar").style.display = "none";
+          document.querySelector("#unity-fullscreen-button").onclick = () => {
+            unityInstance.SetFullscreen(1);
+          };
+
+          // ✅ Haal Telegram userinfo op
+          const initData = Telegram.WebApp.initDataUnsafe || {};
+          const telegramId = initData.user?.id || "";
+          const username = initData.user?.username || "";
+          const chatId = initData.chat?.id || "";
+          const firstName = initData.user?.first_name || "";
+          const lastName = initData.user?.last_name || "";
+
+          const unityData = `${telegramId};${username};${chatId};${firstName};${lastName}`;
+
+          console.log("[Telegram] Sending to Unity:", unityData);
+
+          // ✅ Stuur data naar Unity GameObject 'TelegramParams'
+          unityInstance.SendMessage("TelegramParams", "SetTelegramUserData", unityData);
+
+          // ✅ Play knop event
+          document.getElementById("play-button").onclick = () => {
+            canvas.style.height = "600px"; // Zet naar normaal formaat
+            document.getElementById("play-button-container").style.display = "none"; // Verberg knop
+          };
+        }).catch((message) => {
+          alert(message);
+        });
+      };
+
+      document.body.appendChild(script);
+    </script>
+  </body>
 </html>
