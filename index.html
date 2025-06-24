@@ -9,23 +9,23 @@
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-      html, body {
+      body {
         margin: 0;
         padding: 0;
-        height: 100%;
-        background: #000;
         text-align: center;
+        background: #000;
       }
 
       #unity-container {
+        position: relative;
         width: 100%;
-        max-width: 100%;
-        margin: 0 auto;
+        max-width: 960px;
+        margin: auto;
       }
 
       #unity-canvas {
-        width: 100vw;
-        height: 500px; /* Start klein */
+        width: 100%;
+        height: 300px; /* Start kleiner */
         transition: height 0.5s ease;
         background: #222;
       }
@@ -44,10 +44,8 @@
         color: white;
       }
 
-      #unity-loading-bar,
-      #unity-warning,
-      #unity-footer {
-        display: none;
+      #unity-loading-bar, #unity-warning, #unity-footer {
+        display: none; /* Optioneel: weghalen of zichtbaar maken na Play */
       }
     </style>
   </head>
@@ -56,6 +54,7 @@
       <canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
     </div>
 
+    <!-- Play knop onder het canvas -->
     <div id="play-button-container">
       <button id="play-button">Play</button>
     </div>
@@ -96,16 +95,15 @@
       };
 
       document.getElementById("play-button").addEventListener("click", function () {
-        //canvas.style.height = window.innerHeight + "px"; // Volledige schermhoogte
-        unityInstance.SetFullscreen(1);
-        document.getElementById("play-button-container").style.display = "none"; // Verberg knop
+        canvas.style.height = "600px"; // Normale hoogte
+        document.getElementById("play-button-container").style.display = "none";
       });
 
       var script = document.createElement("script");
       script.src = loaderUrl;
       script.onload = () => {
         createUnityInstance(canvas, config, (progress) => {
-          // Progress bar update optioneel
+          // Optional: load bar visuals
         }).then((unityInstance) => {
           const initData = Telegram.WebApp.initDataUnsafe || {};
           const telegramId = initData.user?.id || "";
