@@ -50,7 +50,7 @@
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const chatId = urlParams.get("chat_id");
+    const fallbackChatId = urlParams.get("chat_id");
 
     let unityInstance = null;
     const canvas = document.querySelector("#unity-canvas");
@@ -91,14 +91,14 @@
     const script = document.createElement("script");
     script.src = "Build/mazerunner.loader.js";
     script.onload = async () => {
-      // Wacht tot Telegram WebApp beschikbaar is
       const tg = window.Telegram.WebApp;
       tg.ready();
 
       const initDataUnsafe = tg.initDataUnsafe;
       const user = initDataUnsafe?.user;
+      const telegramChatId = initDataUnsafe?.chat?.id;
+      const chatId = fallbackChatId || telegramChatId;
 
-      // Start Unity
       createUnityInstance(canvas, config, (progress) => {
         document.querySelector("#unity-progress-bar-full").style.width = `${100 * progress}%`;
       }).then((instance) => {
@@ -108,17 +108,19 @@
           instance.SetFullscreen(1);
         };
 
-        // ✅ Geef Telegram info aan Unity
-        if (unityInstance && user) {
-          unityInstance.SendMessage("TelegramParams", "SetTelegramId", user.id.toString());
-          unityInstance.SendMessage("TelegramParams", "SetUsername", user.username || "");
-          unityInstance.SendMessage("TelegramParams", "SetFirstName", user.first_name || "");
-          unityInstance.SendMessage("TelegramParams", "SetLastName", user.last_name || "");
+        // ✅ Stuur Telegram user info
+        if (user) {
+          instance.SendMessage("TelegramParams", "SetTelegramId", user.id.toString());
+          instance.SendMessage("TelegramParams", "SetUsername", user.username || "");
+          instance.SendMessage("TelegramParams", "SetFirstName", user.first_name || "");
+          instance.SendMessage("TelegramParams", "SetLastName", user.last_name || "");
         }
 
-        // ✅ Voeg chat_id toe uit URL
+        // ✅ Stuur chat_id
         if (chatId) {
-          unityInstance.SendMessage("TelegramParams", "SetChatId", chatId.toString());
+          instance.SendMessage("TelegramParams", "SetChatId", chatId.toString());
+        } else {
+          console.warn("⚠️ Geen chat_id gevonden in URL of initDataUnsafe.chat");
         }
       }).catch((msg) => alert(msg));
     };
