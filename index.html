@@ -1,89 +1,97 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Maze Runner</title>
-    <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css">
-    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
-        text-align: center;
-        background: #000;
-      }
+<head>
+  <meta charset="utf-8">
+  <title>Maze Runner</title>
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      text-align: center;
+    }
 
-      #unity-container {
-        position: relative;
-        width: 100%;
-        max-width: 960px;
-        margin: auto;
-      }
+    #unity-container {
+      position: relative;
+      width: 100%;
+      max-width: 960px;
+      margin: auto;
+    }
 
-      #unity-canvas {
-        width: 100%;
-        height: 300px; /* Start kleiner */
-        transition: height 0.5s ease;
-        background: #222;
-      }
+    #unity-canvas {
+      width: 100%;
+      height: 300px;
+      background: #222;
+      transition: height 0.5s ease;
+    }
 
-      #play-button-container {
-        margin-top: 10px;
-      }
+    #play-button-container {
+      margin-top: 10px;
+    }
 
-      #play-button {
-        padding: 12px 24px;
-        font-size: 18px;
-        cursor: pointer;
-        border-radius: 8px;
-        border: none;
-        background-color: #007AFF;
-        color: white;
-      }
+    #play-button {
+      padding: 12px 24px;
+      font-size: 18px;
+      cursor: pointer;
+      border-radius: 8px;
+      border: none;
+      background-color: #007AFF;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div id="unity-container">
+    <canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
+  </div>
 
-      #unity-loading-bar, #unity-warning, #unity-footer {
-        display: none; /* Optioneel: weghalen of zichtbaar maken na Play */
-      }
-    </style>
-  </head>
-  <body>
-    <div id="unity-container">
-      <canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
-    </div>
+  <div id="play-button-container">
+    <button id="play-button">Play</button>
+  </div>
 
-    <!-- Play knop onder het canvas -->
-    <div id="play-button-container">
-      <button id="play-button">Play</button>
-    </div>
+  <script>
+    const canvas = document.getElementById("unity-canvas");
+    const playButton = document.getElementById("play-button");
 
-    <script>
-      var canvas = document.querySelector("#unity-canvas");
+    let telegramId, username, firstName, lastName, chatId;
 
-      function unityShowBanner(msg, type) {
-        var warningBanner = document.querySelector("#unity-warning");
-        function updateBannerVisibility() {
-          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+    window.Telegram.WebApp.ready();
+
+    const initData = Telegram.WebApp.initDataUnsafe;
+    telegramId = initData.user?.id || "";
+    username = initData.user?.username || "";
+    firstName = initData.user?.first_name || "";
+    lastName = initData.user?.last_name || "";
+
+    async function fetchChatId(telegramId) {
+      for (let i = 0; i < 10; i++) {
+        try {
+          const res = await fetch(`https://highscoregamingbot.pythonanywhere.com/submit_score/get_chat_id?telegram_id=${telegramId}`);
+          if (res.ok) {
+            const json = await res.json();
+            return json.chat_id;
+          }
+          await new Promise(r => setTimeout(r, 1000));
+        } catch (e) {
+          console.error("Netwerkfout bij ophalen chat_id:", e);
+          break;
         }
-        var div = document.createElement('div');
-        div.innerHTML = msg;
-        warningBanner.appendChild(div);
-        if (type == 'error') div.style = 'background: red; padding: 10px;';
-        else {
-          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-          setTimeout(function () {
-            warningBanner.removeChild(div);
-            updateBannerVisibility();
-          }, 5000);
-        }
-        updateBannerVisibility();
       }
+      return "";
+    }
 
-      var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/mazerunner.loader.js";
-      var config = {
+    playButton.addEventListener("click", async () => {
+      canvas.style.height = "600px";
+      playButton.parentElement.style.display = "none";
+
+      chatId = await fetchChatId(telegramId);
+      const unityData = `${telegramId};${username};${chatId};${firstName};${lastName}`;
+
+      const buildUrl = "Build";
+      const loaderUrl = buildUrl + "/mazerunner.loader.js";
+      const config = {
         dataUrl: buildUrl + "/mazerunner.data",
         frameworkUrl: buildUrl + "/mazerunner.framework.js",
         codeUrl: buildUrl + "/mazerunner.wasm",
@@ -91,35 +99,22 @@
         companyName: "Highscore Gaming",
         productName: "Maze",
         productVersion: "0.1",
-        showBanner: unityShowBanner,
       };
 
-      document.getElementById("play-button").addEventListener("click", function () {
-        canvas.style.height = "600px"; // Normale hoogte
-        document.getElementById("play-button-container").style.display = "none";
-      });
-
-      var script = document.createElement("script");
+      const script = document.createElement("script");
       script.src = loaderUrl;
       script.onload = () => {
         createUnityInstance(canvas, config, (progress) => {
-          // Optional: load bar visuals
+          // laadbalk visuals (optioneel)
         }).then((unityInstance) => {
-          const initData = Telegram.WebApp.initDataUnsafe || {};
-          const telegramId = initData.user?.id || "";
-          const username = initData.user?.username || "";
-          const chatId = initData.chat?.id || "";
-          const firstName = initData.user?.first_name || "";
-          const lastName = initData.user?.last_name || "";
-
-          const unityData = `${telegramId};${username};${chatId};${firstName};${lastName}`;
-          console.log("[Telegram] Sending to Unity:", unityData);
+          console.log("✅ Sending to Unity:", unityData);
           unityInstance.SendMessage("TelegramParams", "SetTelegramUserData", unityData);
-        }).catch((message) => {
-          alert(message);
+        }).catch((err) => {
+          alert(err);
         });
       };
       document.body.appendChild(script);
-    </script>
-  </body>
+    });
+  </script>
+</body>
 </html>
