@@ -68,7 +68,7 @@
     async function fetchChatId(telegramId) {
       for (let i = 0; i < 10; i++) {
         try {
-          const res = await fetch(`https://highscoregamingbot.pythonanywhere.com/submit_score/get_chat_id?telegram_id=${telegramId}`);
+          const res = await fetch(`https://highscoregamingbot.pythonanywhere.com/get_chat_id?telegram_id=${telegramId}`);
           if (res.ok) {
             const json = await res.json();
             return json.chat_id;
