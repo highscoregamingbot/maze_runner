@@ -84,34 +84,31 @@
         productVersion: "0.1",
         showBanner: unityShowBanner,
       };
-
-      // --- RESPONSIVE CANVAS LOGICA ---
-      function resizeCanvas() {
-        const aspect = 960 / 600;
-        let w = window.innerWidth;
-        let h = window.innerHeight;
-        if (w / h > aspect) {
-          w = h * aspect;
-        } else {
-          h = w / aspect;
-        }
-        document.getElementById("unity-container").style.width = w + "px";
-        document.getElementById("unity-container").style.height = h + "px";
-        canvas.style.width = w + "px";
-        canvas.style.height = h + "px";
-        canvas.width = w;
-        canvas.height = h;
+      // --- STRETCH-TO-FIT CANVAS NA PLAY ---
+      function stretchCanvas() {
+        document.getElementById("unity-container").style.width = window.innerWidth + "px";
+        document.getElementById("unity-container").style.height = window.innerHeight + "px";
+        canvas.style.width = window.innerWidth + "px";
+        canvas.style.height = window.innerHeight + "px";
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        canvas.style.position = "absolute";
+        canvas.style.left = "0";
+        canvas.style.top = "0";
       }
+      var playPressed = false;
       document.getElementById("play-button").addEventListener("click", function () {
         document.getElementById("play-button-container").style.display = "none";
         document.getElementById("unity-container").style.position = "fixed";
         document.getElementById("unity-container").style.top = 0;
         document.getElementById("unity-container").style.left = 0;
-        resizeCanvas();
+        playPressed = true;
+        stretchCanvas();
       });
-      window.addEventListener('resize', resizeCanvas);
-      // --- EINDE RESPONSIVE CANVAS LOGICA ---
-
+      window.addEventListener('resize', function() {
+        if (playPressed) stretchCanvas();
+      });
+      // --- EINDE STRETCH-TO-FIT LOGICA ---
       var script = document.createElement("script");
       script.src = loaderUrl;
       script.onload = () => {
@@ -124,7 +121,6 @@
           const chatId = initData.chat?.id || "";
           const firstName = initData.user?.first_name || "";
           const lastName = initData.user?.last_name || "";
-
           const unityData = `${telegramId};${username};${chatId};${firstName};${lastName}`;
           console.log("[Telegram] Sending to Unity:", unityData);
           unityInstance.SendMessage("TelegramParams", "SetTelegramUserData", unityData);
