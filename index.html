@@ -95,10 +95,17 @@
       };
 
       document.getElementById("play-button").addEventListener("click", function () {
-        canvas.style.height = "600px"; // Normale hoogte
+        // Maak het canvas en de container fullscreen
+        document.getElementById("unity-container").style.position = "fixed";
+        document.getElementById("unity-container").style.top = 0;
+        document.getElementById("unity-container").style.left = 0;
+        document.getElementById("unity-container").style.width = "100vw";
+        document.getElementById("unity-container").style.height = "100vh";
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
         document.getElementById("play-button-container").style.display = "none";
       });
-
+      
       var script = document.createElement("script");
       script.src = loaderUrl;
       script.onload = () => {
