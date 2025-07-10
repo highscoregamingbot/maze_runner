@@ -231,9 +231,10 @@
         // ---- Play-knop nu tonen ----
         document.getElementById("play-button-container").style.display = "block";
 
-        // Play event: canvas fullscreen
+        // Play event: canvas fullscreen + leaderboard weg
         document.getElementById("play-button").onclick = function() {
           document.getElementById("play-button-container").style.display = "none";
+          document.getElementById("leaderboard-container").style.display = "none";
           document.getElementById("unity-container").style.position = "fixed";
           document.getElementById("unity-container").style.top = 0;
           document.getElementById("unity-container").style.left = 0;
@@ -245,6 +246,7 @@
           canvas.style.position = "absolute";
           canvas.style.left = "0";
           canvas.style.top = "0";
+          document.body.style.background = "#000";
         };
       });
     };
