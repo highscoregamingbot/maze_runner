@@ -113,6 +113,24 @@
       global: [],
       chats: []
     };
+async function fetchBestChatsLeaderboard(game_id, limit=10) {
+  let url = `https://highscoregamingbot.pythonanywhere.com/chat_leaderboard?game_id=${encodeURIComponent(game_id)}&limit=${limit}`;
+  let resp = await fetch(url);
+  let data = await resp.json();
+  // Verwerk het juiste veld!
+  return data.scores || data || [];
+}
+async function loadChatsLeaderboard() {
+  const gameId = 'maze_runner';
+  const chats = await fetchBestChatsLeaderboard(gameId);
+  leaderboardData.chats = chats.map((entry, idx) => ({
+    rank: idx+1,
+    name: entry.title || entry.username || entry.chat_id, // groepsnaam, anders id
+    score: entry.score,
+    photo: '' // Voeg later groepsfoto toe
+  }));
+  renderLeaderboard('chats', 'lb-chats');
+}
 async function fetchChatLeaderboard(game_id, chat_id, limit=10) {
   let url = `https://highscoregamingbot.pythonanywhere.com/alltime_leaderboard?game_id=${encodeURIComponent(game_id)}&chat_id=${encodeURIComponent(chat_id)}&limit=${limit}`;
   let resp = await fetch(url);
@@ -130,6 +148,24 @@ async function loadGroupLeaderboard() {
     photo: '' // Profielfoto kun je later toevoegen als je wilt
   }));
   renderLeaderboard('group', 'lb-group');
+}
+    async function loadGlobalLeaderboard() {
+  const gameId = 'maze_runner'; // Of pak hem dynamisch
+  const global = await fetchGlobalLeaderboard(gameId);
+  leaderboardData.global = global.map((entry, idx) => ({
+    rank: idx+1,
+    name: ((entry.first_name || '') + ' ' + (entry.last_name || '')).trim() || entry.username || '-',
+    score: entry.score,
+    photo: ''
+  }));
+  renderLeaderboard('global', 'lb-global');
+}
+
+    async function fetchGlobalLeaderboard(game_id, limit=10) {
+  let url = `https://highscoregamingbot.pythonanywhere.com/alltime_leaderboard?game_id=${encodeURIComponent(game_id)}&limit=${limit}`;
+  let resp = await fetch(url);
+  let data = await resp.json();
+  return data.scores || [];
 }
     function renderLeaderboard(type, listId) {
       let rows = '';
@@ -149,8 +185,8 @@ async function loadGroupLeaderboard() {
     }
 
     loadGroupLeaderboard();
-    renderLeaderboard('global', 'lb-global');
-    renderLeaderboard('chats', 'lb-chats');
+    loadGlobalLeaderboard();
+    loadChatsLeaderboard();
 
     // Tabs click/swipe
     document.querySelectorAll("#leaderboard-tabs button").forEach(btn => {
