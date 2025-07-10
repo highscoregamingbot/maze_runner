@@ -114,20 +114,20 @@
       chats: []
     };
 async function fetchBestChatsLeaderboard(game_id, limit=10) {
-  let url = `https://highscoregamingbot.pythonanywhere.com/chat_leaderboard?game_id=${encodeURIComponent(game_id)}&limit=${limit}`;
+  let url = `https://highscoregamingbot.pythonanywhere.com/best_chats?game_id=${encodeURIComponent(game_id)}&limit=${limit}`;
   let resp = await fetch(url);
   let data = await resp.json();
-  // Verwerk het juiste veld!
-  return data.scores || data || [];
+  return data.scores || [];
 }
+    
 async function loadChatsLeaderboard() {
   const gameId = 'maze_runner';
   const chats = await fetchBestChatsLeaderboard(gameId);
   leaderboardData.chats = chats.map((entry, idx) => ({
     rank: idx+1,
-    name: entry.title || entry.username || entry.chat_id, // groepsnaam, anders id
+    name: entry.chat_id, // Je kunt hier groepsnaam zetten als je die zou opslaan!
     score: entry.score,
-    photo: '' // Voeg later groepsfoto toe
+    photo: '' // Voor nu leeg, Telegram geeft groepsfoto niet automatisch mee
   }));
   renderLeaderboard('chats', 'lb-chats');
 }
