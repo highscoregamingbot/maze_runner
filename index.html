@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <title>Maze Runner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+      body { background: #000; margin: 0; }
+      #unity-container { width: 100%; max-width: 960px; margin: auto; }
+      #unity-canvas { width: 100%; background: #222; }
+      #play-button-container {
+  display: none;
+  margin-top: 10px;
+  text-align: center;
+}
+      #play-button { padding: 12px 24px; font-size: 18px; border-radius: 8px; border: none; background: #007AFF; color: #fff; cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <div id="unity-container">
+      <canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
+    </div>
+    <div id="play-button-container">
+      <button id="play-button">Play</button>
+    </div>
+    <script>
+      var canvas = document.getElementById("unity-canvas");
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/mazerunner.loader.js";
+      var config = {
+        dataUrl: buildUrl + "/mazerunner.data",
+        frameworkUrl: buildUrl + "/mazerunner.framework.js",
+        codeUrl: buildUrl + "/mazerunner.wasm",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "Highscore Gaming",
+        productName: "Maze",
+        productVersion: "0.1"
+      };
+
+      function getDecodedChatId() {
+        const initData = Telegram.WebApp.initDataUnsafe || {};
+        if (initData.start_param) {
+          let b64 = initData.start_param.replace(/-/g, '+').replace(/_/g, '/');
+          while (b64.length % 4) b64 += '=';
+          try { return atob(b64); } catch (e) { return ""; }
+        }
+        return "";
+      }
+      function getGameIdFromUrl() {
+        let parts = window.location.pathname.split("/").filter(Boolean);
+        return parts.length > 0 ? parts[0] : "";
+      }
+      const initData = Telegram.WebApp.initDataUnsafe || {};
+      const chatId = getDecodedChatId();
+      const gameId = getGameIdFromUrl();
+      const telegramId = initData.user?.id || "";
+      const username = initData.user?.username || "";
+      const firstName = initData.user?.first_name || "";
+      const lastName = initData.user?.last_name || "";
+      const unityData = `${telegramId};${username};${chatId};${firstName};${lastName};${gameId}`;
+
+      // ---- Unity direct laden bij paginalaad ----
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          // Optioneel: load bar visuals
+        }).then((unityInstance) => {
+          // ---- Telegram-data direct sturen ----
+          unityInstance.SendMessage("TelegramParams", "SetTelegramUserData", unityData);
+
+          // ---- Play-knop nu tonen ----
+          document.getElementById("play-button-container").style.display = "block";
+
+          // Play event: canvas fullscreen
+          document.getElementById("play-button").onclick = function() {
+            document.getElementById("play-button-container").style.display = "none";
+            document.getElementById("unity-container").style.position = "fixed";
+            document.getElementById("unity-container").style.top = 0;
+            document.getElementById("unity-container").style.left = 0;
+            // Stretch canvas
+            canvas.style.width = window.innerWidth + "px";
+            canvas.style.height = window.innerHeight + "px";
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            canvas.style.position = "absolute";
+            canvas.style.left = "0";
+            canvas.style.top = "0";
+          };
+        });
+      };
+      document.body.appendChild(script);
+      // ---- Einde Unity direct laden ----
+
+      window.addEventListener('resize', function() {
+        // Optioneel: canvas herstr.
+        // (Alleen als je dat wilt na Play)
+      });
+    </script>
+  </body>
+</html>
