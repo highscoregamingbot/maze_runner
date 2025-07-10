@@ -118,16 +118,15 @@ async function fetchBestChatsLeaderboard(game_id, limit=10) {
   let resp = await fetch(url);
   let data = await resp.json();
   return data.scores || [];
-}
-    
+}   
 async function loadChatsLeaderboard() {
   const gameId = 'maze_runner';
   const chats = await fetchBestChatsLeaderboard(gameId);
   leaderboardData.chats = chats.map((entry, idx) => ({
-    rank: idx+1,
-    name: entry.chat_id, // Je kunt hier groepsnaam zetten als je die zou opslaan!
+    rank: idx + 1,
+    name: entry.chat_title || entry.chat_id,  // Toon groepsnaam, fallback naar chat_id
     score: entry.score,
-    photo: '' // Voor nu leeg, Telegram geeft groepsfoto niet automatisch mee
+    photo: ''  // Je kunt hier nog een groepsfoto toevoegen als je die hebt
   }));
   renderLeaderboard('chats', 'lb-chats');
 }
