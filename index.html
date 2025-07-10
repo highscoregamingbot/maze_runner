@@ -140,7 +140,21 @@
             const lastName = initData.user?.last_name || "";
 
             const unityData = `${telegramId};${username};${chatId};${firstName};${lastName};${gameId}`;
-            console.log("[Telegram] Sending to Unity:", unityData);
+            
+            // --- DEBUGGER: log alles in console én alert ---
+            console.log('=== DEBUG unityData ===');
+            console.log({ telegramId, username, chatId, firstName, lastName, gameId, unityData, initData });
+            alert(
+              'telegramId: ' + telegramId + '\\n' +
+              'username: ' + username + '\\n' +
+              'chatId: ' + chatId + '\\n' +
+              'firstName: ' + firstName + '\\n' +
+              'lastName: ' + lastName + '\\n' +
+              'gameId: ' + gameId + '\\n' +
+              'unityData: ' + unityData
+            );
+            // --- EINDE DEBUGGER ---
+
             unityInstance.SendMessage("TelegramParams", "SetTelegramUserData", unityData);
           }).catch((message) => {
             alert(message);
