@@ -103,48 +103,56 @@
         document.getElementById("unity-container").style.left = 0;
         playPressed = true;
         stretchCanvas();
-      });
-      window.addEventListener('resize', function() {
-        if (playPressed) stretchCanvas();
-      });
-      // --- EINDE STRETCH-TO-FIT LOGICA ---
-      var script = document.createElement("script");
-      script.src = loaderUrl;
-      script.onload = () => {
-        createUnityInstance(canvas, config, (progress) => {
-          // Optional: load bar visuals
-        }).then((unityInstance) => {
-          // --- Telegram WebApp + chat_id parsing ---
-          function getDecodedStartParam() {
+
+        // Unity loader pas NU laden!
+        var script = document.createElement("script");
+        script.src = loaderUrl;
+        script.onload = () => {
+          createUnityInstance(canvas, config, (progress) => {
+            // Optional: load bar visuals
+          }).then((unityInstance) => {
+            // --- Telegram WebApp + chat_id parsing ---
+            function getDecodedChatId() {
               const initData = Telegram.WebApp.initDataUnsafe || {};
               if (initData.start_param) {
                   let b64 = initData.start_param.replace(/-/g, '+').replace(/_/g, '/');
                   while (b64.length % 4) b64 += '=';
                   try {
-                      const decoded = atob(b64);
-                      const [chatId, gameId] = decoded.split('|');
-                      return { chatId, gameId };
+                      return atob(b64);
                   } catch (e) {
-                      console.error("Fout bij decoderen start_param:", e);
+                      console.error("Fout bij decoderen chat_id start_param:", e);
                   }
               }
-              return {};
-          }
-          const initData = Telegram.WebApp.initDataUnsafe || {};
-          const { chatId } = getDecodedStartParam();
-          const telegramId = initData.user?.id || "";
-          const username = initData.user?.username || "";
-          const firstName = initData.user?.first_name || "";
-          const lastName = initData.user?.last_name || "";
+              return "";
+            }
+            function getGameIdFromUrl() {
+              // Path: /maze_runner/ => 'maze_runner'
+              let parts = window.location.pathname.split("/").filter(Boolean);
+              // Neem het eerste deel NA de root
+              return parts.length > 0 ? parts[0] : "";
+            }
+            const initData = Telegram.WebApp.initDataUnsafe || {};
+            const chatId = getDecodedChatId();
+            const gameId = getGameIdFromUrl();
+            const telegramId = initData.user?.id || "";
+            const username = initData.user?.username || "";
+            const firstName = initData.user?.first_name || "";
+            const lastName = initData.user?.last_name || "";
 
-          const unityData = `${telegramId};${username};${chatId || ""};${firstName};${lastName}`;
-          console.log("[Telegram] Sending to Unity:", unityData);
-          unityInstance.SendMessage("TelegramParams", "SetTelegramUserData", unityData);
-        }).catch((message) => {
-          alert(message);
-        });
-      };
-      document.body.appendChild(script);
+            const unityData = `${telegramId};${username};${chatId};${firstName};${lastName};${gameId}`;
+            console.log("[Telegram] Sending to Unity:", unityData);
+            unityInstance.SendMessage("TelegramParams", "SetTelegramUserData", unityData);
+          }).catch((message) => {
+            alert(message);
+          });
+        };
+        document.body.appendChild(script);
+        // EINDE loader toevoegen
+      });
+      window.addEventListener('resize', function() {
+        if (playPressed) stretchCanvas();
+      });
+      // --- EINDE STRETCH-TO-FIT LOGICA ---
     </script>
   </body>
 </html>
