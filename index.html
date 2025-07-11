@@ -87,8 +87,8 @@
       return (await resp.json()).scores || [];
     }
 
-    async function fetchAlltimeChatScores(game_id, limit=10) {
-      const url = `https://highscoregamingbot.pythonanywhere.com/alltime_chat_leaderboard?game_id=${encodeURIComponent(game_id)}&limit=${limit}`;
+    async function fetchBestChatGroups(limit=10) {
+      const url = `https://highscoregamingbot.pythonanywhere.com/alltime_chat_leaderboard?limit=${limit}`;
       const resp = await fetch(url);
       return (await resp.json()).scores || [];
     }
@@ -96,7 +96,9 @@
     function renderLeaderboard(type, listId) {
       const rows = leaderboardData[type].map((entry, i) => {
         const rankClass = i===0?'gold':i===1?'silver':i===2?'bronze':'';
-        const name = type==='chats'? (entry.chat_title || entry.chat_id) : ((entry.first_name||'')+' '+(entry.last_name||'')).trim()||entry.username||'-';
+        const name = type==='chats'
+          ? (entry.chat_title || entry.chat_id)
+          : ((entry.first_name||'') + ' ' + (entry.last_name||'')).trim() || entry.username || '-';
         const score = entry.score || entry.points || entry.total_score;
         const photo = entry.photo || `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(name)}`;
         return `
@@ -117,8 +119,9 @@
       const [group, global, chats] = await Promise.all([
         fetchChatLeaderboard(gameId, chatId),
         fetchGlobalAlltime(gameId),
-        fetchAlltimeChatScores(gameId)
+        fetchBestChatGroups()
       ]);
+
       leaderboardData.group = group;
       leaderboardData.global = global;
       leaderboardData.chats = chats;
@@ -128,52 +131,80 @@
       renderLeaderboard('chats', 'lb-chats');
     }
 
-    document.querySelectorAll('#leaderboard-tabs button').forEach(btn=>btn.addEventListener('click', ()=>{
-      document.querySelectorAll('#leaderboard-tabs button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('#leaderboard-tabs button').forEach(btn => btn.addEventListener('click', () => {
+      document.querySelectorAll('#leaderboard-tabs button').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      document.querySelectorAll('.leaderboard-tab').forEach(c=>c.classList.remove('active'));
+      document.querySelectorAll('.leaderboard-tab').forEach(c => c.classList.remove('active'));
       document.querySelector(`[data-content='${btn.dataset.tab}']`).classList.add('active');
     }));
 
-    let startX=0, currentTab=0;
-    document.getElementById('leaderboard-content').addEventListener('touchstart',e=>startX=e.touches[0].clientX);
-    document.getElementById('leaderboard-content').addEventListener('touchend',e=>{
-      const dx=e.changedTouches[0].clientX-startX;
-      if(Math.abs(dx)>40){ currentTab+=dx<0?1:-1; currentTab=Math.max(0,Math.min(currentTab,2));
+    let startX = 0, currentTab = 0;
+    const contentEl = document.getElementById('leaderboard-content');
+    contentEl.addEventListener('touchstart', e => startX = e.touches[0].clientX);
+    contentEl.addEventListener('touchend', e => {
+      const dx = e.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) > 40) {
+        currentTab = Math.max(0, Math.min(2, currentTab + (dx < 0 ? 1 : -1)));
         document.querySelectorAll('#leaderboard-tabs button')[currentTab].click();
       }
     });
 
-    function getDecodedChatId(){ const init=Telegram.WebApp.initDataUnsafe||{}; let p=init.start_param||""; p=p.replace(/-/g,'+').replace(/_/g,'/'); while(p.length%4) p+='='; try{return atob(p)}catch{return""}};
-    function getGameIdFromUrl(){const parts=window.location.pathname.split('/').filter(Boolean);return parts[0]||''}
+    function getDecodedChatId() {
+      const init = Telegram.WebApp.initDataUnsafe || {};
+      let p = init.start_param || '';
+      p = p.replace(/-/g, '+').replace(/_/g, '/');
+      while (p.length % 4) p += '=';
+      try { return atob(p); } catch { return ''; }
+    }
 
-    // Belangrijk: laad leaderboards direct bij DOM ready
+    function getGameIdFromUrl() {
+      const parts = window.location.pathname.split('/').filter(Boolean);
+      return parts[0] || '';
+    }
+
     document.addEventListener('DOMContentLoaded', loadLeaderboards);
 
-    const unityConfigScript = document.createElement('script');
-    unityConfigScript.src = `Build/${getGameIdFromUrl()}.loader.js`;
-    unityConfigScript.onload = () => {
-      createUnityInstance(document.getElementById('unity-canvas'),{
-        dataUrl:`Build/${getGameIdFromUrl()}.data`,frameworkUrl:`Build/${getGameIdFromUrl()}.framework.js`,codeUrl:`Build/${getGameIdFromUrl()}.wasm`,streamingAssetsUrl:'StreamingAssets',companyName:'Highscore Gaming',productName:'Maze',productVersion:'0.1'
-      }).then(unityInstance=>{
-        const init=Telegram.WebApp.initDataUnsafe||{};
-        const user = init.user||{};
-        const payload=[user.id,user.username||'',getDecodedChatId(),user.first_name||'',user.last_name||'',getGameIdFromUrl()].join(';');
-        unityInstance.SendMessage('TelegramParams','SetTelegramUserData',payload);
-        document.getElementById('play-button-container').style.display='block';
-        document.getElementById('play-button').onclick=()=>{
-          document.getElementById('play-button-container').style.display='none';
-          document.getElementById('leaderboard-container').style.display='none';
-          const canvas=document.getElementById('unity-canvas');
-          canvas.width=window.innerWidth;canvas.height=window.innerHeight;
-          document.getElementById('unity-container').style.position='fixed';document.body.style.background='#000';
+    const unityScript = document.createElement('script');
+    unityScript.src = `Build/${getGameIdFromUrl()}.loader.js`;
+    unityScript.onload = () => {
+      createUnityInstance(
+        document.getElementById('unity-canvas'),
+        {
+          dataUrl: `Build/${getGameIdFromUrl()}.data`,
+          frameworkUrl: `Build/${getGameIdFromUrl()}.framework.js`,
+          codeUrl: `Build/${getGameIdFromUrl()}.wasm`,
+          streamingAssetsUrl: 'StreamingAssets',
+          companyName: 'Highscore Gaming',
+          productName: 'Maze',
+          productVersion: '0.1'
+        }
+      ).then(unityInstance => {
+        const init = Telegram.WebApp.initDataUnsafe || {};
+        const user = init.user || {};
+        const payload = [
+          user.id,
+          user.username || '',
+          getDecodedChatId(),
+          user.first_name || '',
+          user.last_name || '',
+          getGameIdFromUrl()
+        ].join(';');
+        unityInstance.SendMessage('TelegramParams', 'SetTelegramUserData', payload);
+        document.getElementById('play-button-container').style.display = 'block';
+        document.getElementById('play-button').onclick = () => {
+          document.getElementById('play-button-container').style.display = 'none';
+          document.getElementById('leaderboard-container').style.display = 'none';
+          const cv = document.getElementById('unity-canvas');
+          cv.width = window.innerWidth;
+          cv.height = window.innerHeight;
+          document.getElementById('unity-container').style.position = 'fixed';
+          document.body.style.background = '#000';
         };
-        // Herlaad leaderboards na Unity load (voor het geval initData nodig is)
         loadLeaderboards();
       });
     };
-    document.body.appendChild(unityConfigScript);
-    window.addEventListener('resize',()=>{});
+    document.body.appendChild(unityScript);
+    window.addEventListener('resize', () => {});
   </script>
 </body>
 </html>
