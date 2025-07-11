@@ -79,8 +79,21 @@
       }
     }
 
-    function getDecodedChatId() {
+    function getChatId() {
+      // Probeer eerst via Telegram WebApp initDataUnsafe
       const init = window.Telegram?.WebApp?.initDataUnsafe || {};
+      if (init.start_param) {
+        let p = init.start_param.replace(/-/g, '+').replace(/_/g, '/');
+        while (p.length % 4) p += '=';
+        try { return atob(p); } catch (e) { console.warn('Failed to decode start_param:', e); }
+      }
+      // Fallback: chat_id uit URL querystring
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('chat_id')) {
+        return params.get('chat_id');
+      }
+      return '';
+    };
       let p = init.start_param || '';
       p = p.replace(/-/g, '+').replace(/_/g, '/');
       while (p.length % 4) p += '=';
@@ -93,7 +106,7 @@
     }
 
     async function loadLeaderboards() {
-      const chatId = getDecodedChatId();
+      const chatId = getChatId();
       const gameId = getGameIdFromUrl();
       console.log('Loading leaderboards for', gameId, 'chat', chatId);
 
@@ -159,7 +172,7 @@
         console.log('Unity instance created');
         const init = window.Telegram?.WebApp?.initDataUnsafe || {};
         const user = init.user || {};
-        const payload = [user.id, user.username || '', getDecodedChatId(), user.first_name || '', user.last_name || '', getGameIdFromUrl()].join(';');
+        const payload = [user.id, user.username || '', getChatId(), user.first_name || '', user.last_name || '', getGameIdFromUrl()].join(';');
         unityInstance.SendMessage('TelegramParams', 'SetTelegramUserData', payload);
         document.getElementById('play-button-container').style.display = 'block';
         document.getElementById('play-button').onclick = () => {
