@@ -4,15 +4,15 @@
   <meta charset="utf-8" />
   <title>Maze Runner</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    /* Global resets */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
 
     /* Unity container */
     #unity-container { position: absolute; top: 0; left: 0; width: 100%; height: 60vh; background: #000; }
-    canvas { width: 100%; height: 100%; display: block; }
-    #play-button-container { position: absolute; top: 16px; right: 16px; }
+    #unity-canvas { width: 100%; height: 100%; display: block; }
+    #play-button-container { position: absolute; top: 16px; right: 16px; display: none; }
     #play-button {
       padding: 8px 16px;
       background: linear-gradient(135deg, #800080, #ff00ff);
@@ -25,60 +25,18 @@
     }
 
     /* Leaderboard overlay */
-    #leaderboard-container {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 40vh;
-      background: rgba(20,0,20,0.9);
-      border-top: 2px solid #ff00ff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    #leaderboard {
-      width: 90%; max-width: 600px; height: 90%;
-      background: #111;
-      border: 1px solid #ff00ff;
-      border-radius: 12px;
-      box-shadow: 0 0 20px #ff00ff;
-      overflow: hidden;
-      position: relative;
-    }
-    .lb-header {
-      position: absolute;
-      top: 12px;
-      width: 100%;
-      text-align: center;
-      font-size: 1.2em;
-      color: #ff00ff;
-      letter-spacing: .05em;
-    }
-    .lb-list { position: absolute; top: 48px; bottom: 24px; width: 100%; overflow-y: auto; }
-    .lb-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 16px;
-      border-bottom: 1px solid #80008033;
-      color: #fff;
-    }
+    #leaderboard-container { position: absolute; bottom: 0; left: 0; width: 100%; height: 40vh; background: rgba(20,0,20,0.9); border-top: 2px solid #ff00ff; display: flex; align-items: center; justify-content: center; }
+    #leaderboard { width: 90%; max-width: 600px; height: 90%; background: #111; border: 1px solid #ff00ff; border-radius: 12px; box-shadow: 0 0 20px #ff00ff; overflow: hidden; position: relative; }
+    .lb-header { position: absolute; top: 12px; width: 100%; text-align: center; font-size: 1.2em; color: #ff00ff; letter-spacing: .05em; }
+    .lb-list { position: absolute; top: 48px; bottom: 24px; width: 100%; overflow-y: auto; padding: 0 8px; }
+    .lb-row { display: flex; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid #80008033; color: #fff; }
     .lb-row:nth-child(1) { background: #800080; }
     .lb-row:nth-child(2) { background: #a000a0; }
     .lb-row:nth-child(3) { background: #c040c0; }
     .lb-row:nth-child(n+4) { background: #222; }
 
     /* Swipe arrows */
-    .arrow {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #ff00ff;
-      font-size: 2em;
-      cursor: pointer;
-      user-select: none;
-      text-shadow: 0 0 5px rgba(255,0,255,0.7);
-    }
+    .arrow { position: absolute; top: 50%; transform: translateY(-50%); color: #ff00ff; font-size: 2em; cursor: pointer; user-select: none; text-shadow: 0 0 5px rgba(255,0,255,0.7); }
     #arrow-left { left: 12px; }
     #arrow-right { right: 12px; }
   </style>
@@ -98,96 +56,86 @@
   </div>
   <script>
     const API_BASE = 'https://highscoregamingbot.pythonanywhere.com';
-    const PARAMS = new URLSearchParams(window.location.search);
-    const GAME_ID = PARAMS.get('game_id') || 'maze_runner';
-    const CHAT_ID = PARAMS.get('chat_id') || '';
+    const initData = Telegram.WebApp.initDataUnsafe || {};
+    const params = new URLSearchParams(window.location.search);
+    const rawGameId = params.get('game_id') || 'maze_runner';
+    const FILE_ID = rawGameId.replace(/_/g, '');
+    const CHAT_ID = params.get('chat_id') || initData.start_param ? atob(initData.start_param.replace(/-/g,'+').replace(/_/g,'/')) : '';
 
+    // Leaderboards
     const ENDPOINTS = [
-      { title: 'All-Time Chat',    url: `${API_BASE}/alltime_leaderboard?game_id=${GAME_ID}&chat_id=${CHAT_ID}&limit=10` },
-      { title: 'All-Time Global',  url: `${API_BASE}/global_alltime_leaderboard?game_id=${GAME_ID}&limit=10` },
-      { title: 'All-Time Groups',  url: `${API_BASE}/alltime_chat_leaderboard?game_id=${GAME_ID}&limit=10` },
+      { title: 'All-Time Chat',    url: `${API_BASE}/alltime_leaderboard?game_id=${rawGameId}&chat_id=${CHAT_ID}&limit=10` },
+      { title: 'All-Time Global',  url: `${API_BASE}/global_alltime_leaderboard?game_id=${rawGameId}&limit=10` },
+      { title: 'All-Time Groups',  url: `${API_BASE}/alltime_chat_leaderboard?game_id=${rawGameId}&limit=10` },
       { title: 'Best Chat Leader', url: `${API_BASE}/best_chat_leaderboard?limit=10` }
     ];
-
     let currentIndex = 0;
     const headerEl = document.getElementById('lb-header');
     const listEl   = document.getElementById('lb-list');
 
-    async function loadLeaderboard(index) {
-      const ep = ENDPOINTS[index];
+    async function loadLeaderboard(idx) {
+      const ep = ENDPOINTS[idx];
       headerEl.textContent = ep.title;
       try {
         const res = await fetch(ep.url, { cache: 'no-store' });
-        const json = await res.json();
-        const data = json.scores || [];
-        listEl.innerHTML = data.length > 0
-          ? data.map((row, i) => {
-              const name = row.first_name
-                ? `${row.first_name} ${row.last_name || ''}`.trim()
-                : (row.username || row.chat_title || row.chat_id || '—');
-              const score = row.score ?? row.points ?? row.total_score ?? 0;
+        const { scores = [] } = await res.json();
+        listEl.innerHTML = scores.length
+          ? scores.map((r,i) => {
+              const name = r.first_name
+                ? `${r.first_name} ${r.last_name||''}`.trim()
+                : r.username || r.chat_title || '—';
+              const score = r.score ?? r.points ?? r.total_score ?? 0;
               return `<div class="lb-row">${i+1}. ${name}<span>${score}</span></div>`;
             }).join('')
           : `<div class="lb-row">No data</div>`;
       } catch (e) {
         listEl.innerHTML = `<div class="lb-row">Error loading</div>`;
-        console.error('Error fetching leaderboard:', e);
+        console.error('Leaderboard load error:', e);
       }
     }
-
-    function showIndex(delta) {
-      currentIndex = (currentIndex + delta + ENDPOINTS.length) % ENDPOINTS.length;
-      loadLeaderboard(currentIndex);
-    }
-
-    document.getElementById('arrow-left').addEventListener('click', () => showIndex(-1));
-    document.getElementById('arrow-right').addEventListener('click', () => showIndex(1));
-
-    // Swipe detection on leaderboard container
-    let startX = 0;
-    const lbContainer = document.getElementById('leaderboard');
-    lbContainer.addEventListener('touchstart', e => startX = e.touches[0].clientX);
-    lbContainer.addEventListener('touchend', e => {
-      const diff = e.changedTouches[0].clientX - startX;
-      if (diff > 40) showIndex(-1);
-      if (diff < -40) showIndex(1);
-    });
-
-    // Initial leaderboard load
+    function show(delta) { currentIndex = (currentIndex + delta + ENDPOINTS.length) % ENDPOINTS.length; loadLeaderboard(currentIndex); }
+    document.getElementById('arrow-left').addEventListener('click', ()=>show(-1));
+    document.getElementById('arrow-right').addEventListener('click', ()=>show(1));
+    // Swipe
+    let startX=0; const lbC = document.getElementById('leaderboard');
+    lbC.addEventListener('touchstart', e => startX=e.touches[0].clientX);
+    lbC.addEventListener('touchend', e => { const d=e.changedTouches[0].clientX-startX; if(d>40)show(-1); if(d<-40)show(1); });
     loadLeaderboard(0);
 
-    // Unity WebGL loader
+    // Unity loader
     const canvas = document.getElementById('unity-canvas');
-    canvas.width = window.innerWidth;
-    canvas.height = document.getElementById('unity-container').clientHeight;
-    const buildUrl = 'Build';
+    function resizeCanvas(){ canvas.width = window.innerWidth; canvas.height = document.getElementById('unity-container').clientHeight; }
+    window.addEventListener('resize', resizeCanvas); resizeCanvas();
     const config = {
-      dataUrl: `${buildUrl}/${GAME_ID}.data`,
-      frameworkUrl: `${buildUrl}/${GAME_ID}.framework.js`,
-      codeUrl: `${buildUrl}/${GAME_ID}.wasm`,
+      dataUrl: `Build/${FILE_ID}.data`,
+      frameworkUrl: `Build/${FILE_ID}.framework.js`,
+      codeUrl: `Build/${FILE_ID}.wasm`,
       streamingAssetsUrl: 'StreamingAssets',
-      companyName: 'Highscore Gaming', productName: GAME_ID, productVersion: '0.1'
+      companyName: initData.user?.username || 'Highscore Gaming',
+      productName: rawGameId,
+      productVersion: '0.1'
     };
-
-    const unityLoader = document.createElement('script');
-    unityLoader.src = `${buildUrl}/${GAME_ID}.loader.js`;
-    unityLoader.onload = () => {
-      createUnityInstance(canvas, config, null)
-        .then(unity => {
-          // Fullscreen on play
+    const loader = document.createElement('script'); loader.src = `Build/${FILE_ID}.loader.js`;
+    loader.onload = () => {
+      createUnityInstance(canvas, config, progress => console.log('Progress', progress))
+        .then(unityInstance => {
+          console.log('Unity initialized');
           document.getElementById('play-button-container').style.display = 'block';
+          document.getElementById('play-button').addEventListener('click', () => {
+            // fullscreen
+            const c = document.getElementById('unity-container');
+            c.requestFullscreen?.() || c.webkitRequestFullscreen?.() || c.msRequestFullscreen?.();
+            // hide leaderboard
+            document.getElementById('leaderboard-container').style.display = 'none';
+          });
+          // send telegram data
+          const u = initData.user || {};
+          const payload = [u.id, u.username||'', CHAT_ID, u.first_name||'', u.last_name||'', rawGameId].join(';');
+          unityInstance.SendMessage('TelegramParams', 'SetTelegramUserData', payload);
         })
-        .catch(err => console.error('Unity init failed:', err));
+        .catch(e => console.error('Unity init failed:', e));
     };
-    document.body.appendChild(unityLoader);
-
-    // Play fullscreen logic
-    document.getElementById('play-button').addEventListener('click', () => {
-      const container = document.getElementById('unity-container');
-      if (container.requestFullscreen) container.requestFullscreen();
-      else if (container.webkitRequestFullscreen) container.webkitRequestFullscreen();
-      else if (container.msRequestFullscreen) container.msRequestFullscreen();
-    });
+    document.body.appendChild(loader);
   </script>
 </body>
 </html>
