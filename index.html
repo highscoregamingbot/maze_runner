@@ -147,6 +147,9 @@
     function getDecodedChatId(){ const init=Telegram.WebApp.initDataUnsafe||{}; let p=init.start_param||""; p=p.replace(/-/g,'+').replace(/_/g,'/'); while(p.length%4) p+='='; try{return atob(p)}catch{return""}};
     function getGameIdFromUrl(){const parts=window.location.pathname.split('/').filter(Boolean);return parts[0]||''}
 
+    // Belangrijk: laad leaderboards direct bij DOM ready
+    document.addEventListener('DOMContentLoaded', loadLeaderboards);
+
     const unityConfigScript = document.createElement('script');
     unityConfigScript.src = `Build/${getGameIdFromUrl()}.loader.js`;
     unityConfigScript.onload = () => {
@@ -165,6 +168,7 @@
           canvas.width=window.innerWidth;canvas.height=window.innerHeight;
           document.getElementById('unity-container').style.position='fixed';document.body.style.background='#000';
         };
+        // Herlaad leaderboards na Unity load (voor het geval initData nodig is)
         loadLeaderboards();
       });
     };
