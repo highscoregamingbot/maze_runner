@@ -12,7 +12,7 @@
     /* Unity container */
     #unity-container { position: absolute; top: 0; left: 0; width: 100%; height: 60vh; background: #000; }
     #unity-canvas { width: 100%; height: 100%; display: block; }
-    #play-button-container { position: absolute; top: 16px; right: 16px; display: none; }
+    #play-button-container { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); display: none; z-index: 10; }
     #play-button {
       padding: 8px 16px;
       background: linear-gradient(135deg, #800080, #ff00ff);
@@ -25,18 +25,31 @@
     }
 
     /* Leaderboard overlay */
-    #leaderboard-container { position: absolute; bottom: 0; left: 0; width: 100%; height: 40vh; background: rgba(20,0,20,0.9); border-top: 2px solid #ff00ff; display: flex; align-items: center; justify-content: center; }
-    #leaderboard { width: 90%; max-width: 600px; height: 90%; background: #111; border: 1px solid #ff00ff; border-radius: 12px; box-shadow: 0 0 20px #ff00ff; overflow: hidden; position: relative; }
+    #leaderboard-container {
+      position: absolute; bottom: 0; left: 0;
+      width: 100%; height: 40vh;
+      background: rgba(20,0,20,0.9);
+      border-top: 2px solid #ff00ff;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 5;
+    }
+    #leaderboard {
+      width: 90%; max-width: 600px; height: 90%;
+      background: #111; border: 1px solid #ff00ff;
+      border-radius: 12px; box-shadow: 0 0 20px #ff00ff;
+      overflow: hidden; position: relative;
+      touch-action: none;
+    }
     .lb-header { position: absolute; top: 12px; width: 100%; text-align: center; font-size: 1.2em; color: #ff00ff; letter-spacing: .05em; }
     .lb-list { position: absolute; top: 48px; bottom: 24px; width: 100%; overflow-y: auto; padding: 0 8px; }
     .lb-row { display: flex; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid #80008033; color: #fff; }
-    .lb-row:nth-child(1) { background: #800080; }
-    .lb-row:nth-child(2) { background: #a000a0; }
-    .lb-row:nth-child(3) { background: #c040c0; }
+    .lb-row:nth-child(1) { background: #d4af37; color: #000; }
+    .lb-row:nth-child(2) { background: #c0c0c0; color: #000; }
+    .lb-row:nth-child(3) { background: #cd7f32; color: #000; }
     .lb-row:nth-child(n+4) { background: #222; }
 
     /* Swipe arrows */
-    .arrow { position: absolute; top: 50%; transform: translateY(-50%); color: #ff00ff; font-size: 2em; cursor: pointer; user-select: none; text-shadow: 0 0 5px rgba(255,0,255,0.7); }
+    .arrow { position: absolute; top: 50%; transform: translateY(-50%); color: #ff00ff; font-size: 2em; cursor: pointer; user-select: none; text-shadow: 0 0 5px rgba(255,0,255,0.7); z-index: 6; }
     #arrow-left { left: 12px; }
     #arrow-right { right: 12px; }
   </style>
@@ -56,93 +69,91 @@
   </div>
   <script>
     const API_BASE = 'https://highscoregamingbot.pythonanywhere.com';
-    const initData = Telegram.WebApp.initDataUnsafe || {};
+    const initData = Telegram.WebApp?.initDataUnsafe || {};
     const params = new URLSearchParams(window.location.search);
-    const rawGameId = params.get('game_id') || 'maze_runner';
-    const FILE_ID = rawGameId.replace(/_/g, '');
-    const CHAT_ID = (function() {
-      const p = params.get('chat_id');
-      if (p) return p;
-      if (initData.start_param) {
+    const gameId = params.get('game_id') || 'maze_runner';
+    const FILE_ID = gameId; // use raw gameId for filenames
+    const CHAT_ID = (function(){
+      const p = params.get('chat_id'); if(p) return p;
+      if(initData.start_param){
         let b64 = initData.start_param.replace(/-/g,'+').replace(/_/g,'/');
-        while (b64.length % 4) b64 += '=';
-        try { return atob(b64); } catch(e) { console.warn('Invalid start_param:', e); }
+        while(b64.length % 4) b64 += '=';
+        try { return atob(b64); } catch(e) { console.warn('Invalid start_param', e); }
       }
       return '';
     })();
 
-    const ENDPOINTS = [2
-      { title: 'All-Time Chat',    url: `${API_BASE}/alltime_leaderboard?game_id=${rawGameId}&chat_id=${CHAT_ID}&limit=10` },
-      { title: 'All-Time Global',  url: `${API_BASE}/global_alltime_leaderboard?game_id=${rawGameId}&limit=10` },
-      { title: 'All-Time Groups',  url: `${API_BASE}/alltime_chat_leaderboard?game_id=${rawGameId}&limit=10` },
-      { title: 'Best Chat Leader', url: `${API_BASE}/best_chat_leaderboard?limit=10` }
+    const ENDPOINTS = [
+      { title:'All-Time Chat',    url:`${API_BASE}/alltime_leaderboard?game_id=${gameId}&chat_id=${CHAT_ID}&limit=10` },
+      { title:'All-Time Global',  url:`${API_BASE}/global_alltime_leaderboard?game_id=${gameId}&limit=10` },
+      { title:'All-Time Groups',  url:`${API_BASE}/alltime_chat_leaderboard?game_id=${gameId}&limit=10` },
+      { title:'Best Chat Leader', url:`${API_BASE}/best_chat_leaderboard?limit=10` }
     ];
     let currentIndex = 0;
     const headerEl = document.getElementById('lb-header');
     const listEl   = document.getElementById('lb-list');
+    const lbDiv    = document.getElementById('leaderboard');
 
-    async function loadLeaderboard(idx) {
+    async function loadLeaderboard(idx){
+      currentIndex = idx;
       const ep = ENDPOINTS[idx];
       headerEl.textContent = ep.title;
-      try {
+      try{
         const res = await fetch(ep.url, { cache: 'no-store' });
-        const { scores = [] } = await res.json();
-        listEl.innerHTML = scores.length
-          ? scores.map((r,i) => {
-              const name = r.first_name
-                ? `${r.first_name} ${r.last_name||''}`.trim()
-                : r.username || r.chat_title || '—';
-              const score = r.score ?? r.points ?? r.total_score ?? 0;
-              return `<div class="lb-row">${i+1}. ${name}<span>${score}</span></div>`;
-            }).join('')
-          : `<div class="lb-row">No data</div>`;
-      } catch (e) {
-        listEl.innerHTML = `<div class="lb-row">Error loading</div>`;
-        console.error('Leaderboard load error:', e);
+        const data = await res.json();
+        const scores = data.scores || [];
+        listEl.innerHTML = scores.length ? scores.map((r,i) => {
+          const name = (r.first_name || '') + ' ' + (r.last_name || '');
+          const display = name.trim() || r.username || r.chat_title || '—';
+          const val = r.score ?? r.points ?? r.total_score ?? 0;
+          return `<div class="lb-row">${i+1}. ${display}<span>${val}</span></div>`;
+        }).join('') : '<div class="lb-row">No data</div>';
+      } catch(e) {
+        console.error('Leaderboard load error', e);
+        listEl.innerHTML = '<div class="lb-row">Error loading</div>';
       }
     }
-    function show(delta) { currentIndex = (currentIndex + delta + ENDPOINTS.length) % ENDPOINTS.length; loadLeaderboard(currentIndex); }
-    document.getElementById('arrow-left').addEventListener('click', ()=>show(-1));
-    document.getElementById('arrow-right').addEventListener('click', ()=>show(1));
-    // Swipe touch
-    let startX=0; const lbC = document.getElementById('leaderboard');
-    lbC.addEventListener('touchstart', e => startX=e.touches[0].clientX);
-    lbC.addEventListener('touchend', e => { const d=e.changedTouches[0].clientX-startX; if(d>40)show(-1); if(d<-40)show(1); });
-    // Swipe mouse
-    let isDown=false;
-    lbC.addEventListener('mousedown', e => { isDown=true; startX=e.clientX; });
-    lbC.addEventListener('mouseup', e => { if(isDown){ const d=e.clientX-startX; if(d>40)show(-1); if(d<-40)show(1); isDown=false; }});
+    function show(delta){ loadLeaderboard((currentIndex + delta + ENDPOINTS.length) % ENDPOINTS.length); }
+    document.getElementById('arrow-left').onclick  = () => show(-1);
+    document.getElementById('arrow-right').onclick = () => show(1);
+    // pointer swipe
+    let startX = 0, down = false;
+    lbDiv.addEventListener('pointerdown', e => { down = true; startX = e.clientX; });
+    lbDiv.addEventListener('pointerup',   e => { if(down){ const d = e.clientX - startX; if(d > 50) show(-1); if(d < -50) show(1); down = false; }});
     loadLeaderboard(0);
 
     // Unity loader
     const canvas = document.getElementById('unity-canvas');
-    function resizeCanvas(){ canvas.width = window.innerWidth; canvas.height = document.getElementById('unity-container').clientHeight; }
-    window.addEventListener('resize', resizeCanvas); resizeCanvas();
+    function resize() { canvas.width = window.innerWidth; canvas.height = document.getElementById('unity-container').clientHeight; }
+    window.addEventListener('resize', resize); resize();
     const config = {
-      dataUrl: `Build/${FILE_ID}.data`,
-      frameworkUrl: `Build/${FILE_ID}.framework.js`,
-      codeUrl: `Build/${FILE_ID}.wasm`,
-      streamingAssetsUrl: 'StreamingAssets',
-      companyName: initData.user?.username || 'Highscore Gaming',
-      productName: rawGameId,
-      productVersion: '0.1'
+      dataUrl:             `Build/${FILE_ID}.data`,
+      frameworkUrl:        `Build/${FILE_ID}.framework.js`,
+      codeUrl:             `Build/${FILE_ID}.wasm`,
+      streamingAssetsUrl:  'StreamingAssets',
+      companyName:        initData.user?.username || 'Highscore Gaming',
+      productName:         gameId,
+      productVersion:      '0.1'
     };
-    const loader = document.createElement('script'); loader.src = `Build/${FILE_ID}.loader.js`;
+    const loader = document.createElement('script');
+    loader.src = `Build/${FILE_ID}.loader.js`;
     loader.onload = () => {
-      createUnityInstance(canvas, config, progress => console.log('Progress', progress))
-        .then(unityInstance => {
-          console.log('Unity initialized');
+      console.log('Loader loaded:', loader.src);
+      createUnityInstance(canvas, config, prog => console.log('Progress:', prog))
+        .then(u => {
+          console.log('Unity OK');
           const playBtnCont = document.getElementById('play-button-container');
           playBtnCont.style.display = 'block';
-          document.getElementById('play-button').addEventListener('click', () => {
+          document.getElementById('play-button').onclick = () => {
             const c = document.getElementById('unity-container');
-            c.requestFullscreen?.() || c.webkitRequestFullscreen?.() || c.msRequestFullscreen?.();
+            (c.requestFullscreen || c.webkitRequestFullscreen || c.msRequestFullscreen).call(c);
             document.getElementById('leaderboard-container').style.display = 'none';
             playBtnCont.style.display = 'none';
-          });
-          const u = initData.user || {};
-          const payload = [u.id, u.username||'', CHAT_ID, u.first_name||'', u.last_name||'', rawGameId].join(';');
-          unityInstance.SendMessage('TelegramParams', 'SetTelegramUserData', payload);
+          };
+          const uData = initData.user || {};
+          u.SendMessage('TelegramParams', 'SetTelegramUserData',
+            [uData.id, uData.username || '', CHAT_ID, uData.first_name || '', uData.last_name || '', gameId].join(';')
+          );
         })
         .catch(e => console.error('Unity init failed:', e));
     };
