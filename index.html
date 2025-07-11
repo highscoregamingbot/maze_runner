@@ -60,9 +60,17 @@
     const params = new URLSearchParams(window.location.search);
     const rawGameId = params.get('game_id') || 'maze_runner';
     const FILE_ID = rawGameId.replace(/_/g, '');
-    const CHAT_ID = params.get('chat_id') || initData.start_param ? atob(initData.start_param.replace(/-/g,'+').replace(/_/g,'/')) : '';
+    const CHAT_ID = (function() {
+      const p = params.get('chat_id');
+      if (p) return p;
+      if (initData.start_param) {
+        let b64 = initData.start_param.replace(/-/g,'+').replace(/_/g,'/');
+        while (b64.length % 4) b64 += '=';
+        try { return atob(b64); } catch(e) { console.warn('Invalid start_param:', e); }
+      }
+      return '';
+    })();
 
-    // Leaderboards
     const ENDPOINTS = [
       { title: 'All-Time Chat',    url: `${API_BASE}/alltime_leaderboard?game_id=${rawGameId}&chat_id=${CHAT_ID}&limit=10` },
       { title: 'All-Time Global',  url: `${API_BASE}/global_alltime_leaderboard?game_id=${rawGameId}&limit=10` },
@@ -96,10 +104,14 @@
     function show(delta) { currentIndex = (currentIndex + delta + ENDPOINTS.length) % ENDPOINTS.length; loadLeaderboard(currentIndex); }
     document.getElementById('arrow-left').addEventListener('click', ()=>show(-1));
     document.getElementById('arrow-right').addEventListener('click', ()=>show(1));
-    // Swipe
+    // Swipe touch
     let startX=0; const lbC = document.getElementById('leaderboard');
     lbC.addEventListener('touchstart', e => startX=e.touches[0].clientX);
     lbC.addEventListener('touchend', e => { const d=e.changedTouches[0].clientX-startX; if(d>40)show(-1); if(d<-40)show(1); });
+    // Swipe mouse
+    let isDown=false;
+    lbC.addEventListener('mousedown', e => { isDown=true; startX=e.clientX; });
+    lbC.addEventListener('mouseup', e => { if(isDown){ const d=e.clientX-startX; if(d>40)show(-1); if(d<-40)show(1); isDown=false; }});
     loadLeaderboard(0);
 
     // Unity loader
@@ -120,15 +132,14 @@
       createUnityInstance(canvas, config, progress => console.log('Progress', progress))
         .then(unityInstance => {
           console.log('Unity initialized');
-          document.getElementById('play-button-container').style.display = 'block';
+          const playBtnCont = document.getElementById('play-button-container');
+          playBtnCont.style.display = 'block';
           document.getElementById('play-button').addEventListener('click', () => {
-            // fullscreen
             const c = document.getElementById('unity-container');
             c.requestFullscreen?.() || c.webkitRequestFullscreen?.() || c.msRequestFullscreen?.();
-            // hide leaderboard
             document.getElementById('leaderboard-container').style.display = 'none';
+            playBtnCont.style.display = 'none';
           });
-          // send telegram data
           const u = initData.user || {};
           const payload = [u.id, u.username||'', CHAT_ID, u.first_name||'', u.last_name||'', rawGameId].join(';');
           unityInstance.SendMessage('TelegramParams', 'SetTelegramUserData', payload);
