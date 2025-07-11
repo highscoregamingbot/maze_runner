@@ -87,8 +87,12 @@
       return (await resp.json()).scores || [];
     }
 
-    async function fetchBestChatGroups(limit=10) {
-      const url = `https://highscoregamingbot.pythonanywhere.com/alltime_chat_leaderboard?limit=${limit}`;
+    async function fetchAlltimeChatGroups(game_id, limit=10) {
+      const url = `https://highscoregamingbot.pythonanywhere.com/alltime_chat_leaderboard?game_id=${encodeURIComponent(game_id)}&limit=${limit}`;
+      const resp = await fetch(url);
+      return (await resp.json()).scores || [];
+    }
+    `;
       const resp = await fetch(url);
       return (await resp.json()).scores || [];
     }
@@ -119,7 +123,7 @@
       const [group, global, chats] = await Promise.all([
         fetchChatLeaderboard(gameId, chatId),
         fetchGlobalAlltime(gameId),
-        fetchBestChatGroups()
+        fetchAlltimeChatGroups(gameId)
       ]);
 
       leaderboardData.group = group;
