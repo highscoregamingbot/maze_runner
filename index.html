@@ -12,7 +12,13 @@
     /* Unity container */
     #unity-container { position: absolute; top: 0; left: 0; width: 100%; height: 60vh; background: #000; }
     #unity-canvas { width: 100%; height: 100%; display: block; }
-    #play-button-container { position: absolute; top: 16px; right: 16px; display: none; }
+    #play-button-container {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: none;
+    }
     #play-button {
       padding: 8px 16px;
       background: linear-gradient(135deg, #800080, #ff00ff);
@@ -71,7 +77,7 @@
       return '';
     })();
 
-    const ENDPOINTS = [
+    const ENDPOINTS = [2
       { title: 'All-Time Chat',    url: `${API_BASE}/alltime_leaderboard?game_id=${rawGameId}&chat_id=${CHAT_ID}&limit=10` },
       { title: 'All-Time Global',  url: `${API_BASE}/global_alltime_leaderboard?game_id=${rawGameId}&limit=10` },
       { title: 'All-Time Groups',  url: `${API_BASE}/alltime_chat_leaderboard?game_id=${rawGameId}&limit=10` },
@@ -105,13 +111,23 @@
     document.getElementById('arrow-left').addEventListener('click', ()=>show(-1));
     document.getElementById('arrow-right').addEventListener('click', ()=>show(1));
     // Swipe touch
-    let startX=0; const lbC = document.getElementById('leaderboard');
-    lbC.addEventListener('touchstart', e => startX=e.touches[0].clientX);
-    lbC.addEventListener('touchend', e => { const d=e.changedTouches[0].clientX-startX; if(d>40)show(-1); if(d<-40)show(1); });
-    // Swipe mouse
-    let isDown=false;
-    lbC.addEventListener('mousedown', e => { isDown=true; startX=e.clientX; });
-    lbC.addEventListener('mouseup', e => { if(isDown){ const d=e.clientX-startX; if(d>40)show(-1); if(d<-40)show(1); isDown=false; }});
+    let startX = 0;
+    const lbC = document.getElementById('leaderboard');
+    lbC.style.touchAction = 'none'; // allow pointer events
+    lbC.addEventListener('touchstart', e => startX = e.touches[0].clientX);
+    lbC.addEventListener('touchend', e => { const d = e.changedTouches[0].clientX - startX; if (d > 40) show(-1); if (d < -40) show(1); });
+    
+    // Swipe mouse / pointer
+    let isDown = false;
+    lbC.addEventListener('pointerdown', e => { isDown = true; startX = e.clientX; });
+    lbC.addEventListener('pointerup', e => {
+      if (!isDown) return;
+      const d = e.clientX - startX;
+      if (d > 40) show(-1);
+      if (d < -40) show(1);
+      isDown = false;
+    });
+
     loadLeaderboard(0);
 
     // Unity loader
