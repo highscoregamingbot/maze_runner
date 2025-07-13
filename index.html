@@ -390,11 +390,20 @@ limitSelect.addEventListener("change", e => {
   loadLeaderboard(activeTab);
 });
 
-// Play knop actie
 playButton.addEventListener("click", () => {
   if (!isLoaded) return;
   overlay.classList.add("hidden");
   document.body.classList.add("fullscreen");
+
+  // Zet Unity-container en canvas fullscreen:
+  var unityContainer = document.getElementById("unity-container");
+  unityContainer.style.position = "fixed";
+  unityContainer.style.top = "0";
+  unityContainer.style.left = "0";
+  unityContainer.style.width = "100vw";
+  unityContainer.style.height = "100vh";
+  canvas.style.width = "100vw";
+  canvas.style.height = "100vh";
 });
 
 // Init
