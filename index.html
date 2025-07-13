@@ -315,7 +315,7 @@ function loadLeaderboard(tabKey) {
         const name = [entry.first_name, entry.last_name].filter(Boolean).join(" ").trim() || entry.chat_title || "";
         return name !== "" && isNaN(name) && name !== "—";
       });
-
+      console.log("DEBUG Number of filtered scores:", scores.length);
       lb.innerHTML = "";
 
       if (scores.length === 0) {
