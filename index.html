@@ -256,11 +256,16 @@ body.fullscreen .ui-overlay {
       };
 
       function getDecodedChatId() {
-      const params = new URLSearchParams(window.location.search);
-        const param = params.get('startapp') || params.get('start_param');
+        // 1. Eerst uit URL
+        const urlParams = new URLSearchParams(window.location.search);
+        let param = urlParams.get('startapp') || urlParams.get('start_param');
+        // 2. Anders uit Telegram initData
+        if (!param && Telegram.WebApp && Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.start_param) {
+          param = Telegram.WebApp.initDataUnsafe.start_param;
+        }
         if (param) {
           let b64 = param.replace(/-/g, '+').replace(/_/g, '/');
-        while (b64.length % 4) b64 += '=';
+          while (b64.length % 4) b64 += '=';
           try { return atob(b64); } catch (e) { return ""; }
         }
         return "";
