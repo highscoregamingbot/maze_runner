@@ -289,8 +289,13 @@ function buildEndpoints() {
 }
 
 function loadLeaderboard(tabKey) {
-  lb.innerHTML = "Laden...";
+  lb.innerHTML = "Loading...";
   const endpoints = buildEndpoints();
+
+  // Tijdens het laden
+playButtonContainer.style.display = "block";
+playButton.disabled = true;
+playButton.textContent = "⏳ Loading...";
 
   fetch(baseURL + endpoints[tabKey])
     .then(res => {
@@ -334,11 +339,11 @@ function loadLeaderboard(tabKey) {
         lb.appendChild(div);
       });
 
-      playButtonContainer.style.display = "block";
-      playButton.disabled = false; // optioneel, voor extra zekerheid
-      playButton.textContent = "▶️ Play";
-      playButton.textContent = "⏳ Laden...";
-      isLoaded = true;
+// Na het vullen van de leaderboard (dus vlak voor isLoaded = true)
+playButton.disabled = false;
+playButton.textContent = "▶️ Play";
+isLoaded = true;
+
       // Scroll expliciet naar de play-button als hij buiten beeld is
       setTimeout(() => {
         playButton.scrollIntoView({ behavior: "smooth", block: "center" });
