@@ -241,6 +241,8 @@ body.fullscreen .ui-overlay {
       const initData = Telegram.WebApp.initDataUnsafe || {};
       const chatId = getDecodedChatId();
       const gameId = getGameIdFromUrl();
+      console.log("DEBUG gameId:", gameId);
+      console.log("DEBUG chatId:", chatId);
       const telegramId = initData.user?.id || "";
       const username = initData.user?.username || "";
       const firstName = initData.user?.first_name || "";
@@ -287,7 +289,7 @@ function buildEndpoints() {
     chat: `/alltime_chat_leaderboard?game_id=${gameId}&limit=${limit}`
   };
 }
-
+console.log("FETCH URL:", baseURL + endpoints[tabKey]);
 function loadLeaderboard(tabKey) {
   lb.innerHTML = "Loading...";
   const endpoints = buildEndpoints();
@@ -307,6 +309,8 @@ playButton.textContent = "⏳ Loading...";
         const name = [entry.first_name, entry.last_name].filter(Boolean).join(" ").trim() || entry.chat_title || "";
         return name !== "" && isNaN(name) && name !== "—";
       });
+      console.log("API RESPONSE:", data);
+
 
       lb.innerHTML = "";
 
