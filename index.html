@@ -181,7 +181,18 @@
     const overlay = document.getElementById("ui-overlay");
 
     const gameId = "maze_runner";
-    const chatId = "-1002558878195";
+    function getChatIdFromUrl() {
+      // Zoek naar ?chat_id=.... of #chat_id=....
+      const params = new URLSearchParams(window.location.search);
+      if (params.has("chat_id")) return params.get("chat_id");
+      // evt. fallback op hash
+      if (window.location.hash.startsWith("#chat_id=")) {
+        return window.location.hash.replace("#chat_id=", "");
+      }
+      return ""; // fallback (kan ook null zijn)
+    }
+    const chatId = getChatIdFromUrl();
+
     const baseURL = "https://highscoregamingbot.pythonanywhere.com";
 
     let limit = 10;
