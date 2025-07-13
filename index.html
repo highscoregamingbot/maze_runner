@@ -207,10 +207,10 @@
 
     function buildEndpoints() {
       return {
-        leaderboard: \`/leaderboard?game_id=\${gameId}&chat_id=\${chatId}&limit=\${limit}\`,
-        alltime: \`/alltime_leaderboard?game_id=\${gameId}&chat_id=\${chatId}&limit=\${limit}\`,
-        global: \`/global_alltime_leaderboard?game_id=\${gameId}&limit=\${limit}\`,
-        chat: \`/alltime_chat_leaderboard?game_id=\${gameId}&limit=\${limit}\`
+        leaderboard: chatId ? `/leaderboard?game_id=${gameId}&chat_id=${chatId}&limit=${limit}` : null,
+        alltime: chatId ? `/alltime_leaderboard?game_id=${gameId}&chat_id=${chatId}&limit=${limit}` : null,
+        global: `/global_alltime_leaderboard?game_id=${gameId}&limit=${limit}`,
+        chat: `/alltime_chat_leaderboard?game_id=${gameId}&limit=${limit}`
       };
     }
 
