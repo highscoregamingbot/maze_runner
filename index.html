@@ -237,7 +237,10 @@ body.fullscreen .ui-overlay {
         return "";
       }
       const chatId = getDecodedChatId();
-      const gameId = getGameIdFromUrl();
+      function getGameIdFromUrl() {
+        let parts = window.location.pathname.split("/").filter(Boolean);
+        return parts.length > 0 ? parts[0] : "";
+      }
       const telegramId = initData.user?.id || "";
       const username = initData.user?.username || "";
       const firstName = initData.user?.first_name || "";
