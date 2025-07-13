@@ -394,6 +394,11 @@ playButton.addEventListener("click", () => {
   if (!isLoaded) return;
   overlay.classList.add("hidden");
   document.body.classList.add("fullscreen");
+  // Na de animatie het overlay-div helemaal verwijderen
+  setTimeout(() => {
+    overlay.style.display = "none";
+  }, 600); // matcht de transition: 0.6s uit je CSS
+
 
   // Zet Unity-container en canvas fullscreen:
   var unityContainer = document.getElementById("unity-container");
