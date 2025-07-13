@@ -295,11 +295,14 @@ function buildEndpoints() {
 function loadLeaderboard(tabKey) {
   lb.innerHTML = "Loading...";
   const endpoints = buildEndpoints();
-
+  console.log("DEBUG gameId:", gameId);
+  console.log("DEBUG chatId:", chatId);
+  console.log("DEBUG tabKey:", tabKey);
+  console.log("DEBUG Fetch URL:", baseURL + endpoints[tabKey]);
   // Tijdens het laden
-playButtonContainer.style.display = "block";
-playButton.disabled = true;
-playButton.textContent = "⏳ Loading...";
+  playButtonContainer.style.display = "block";
+  playButton.disabled = true;
+  playButton.textContent = "⏳ Loading...";
 
   fetch(baseURL + endpoints[tabKey])
     .then(res => {
@@ -307,6 +310,7 @@ playButton.textContent = "⏳ Loading...";
       return res.json();
     })
     .then(data => {
+      console.log("DEBUG Leaderboard API response:", data);
       const scores = (data.scores || []).filter(entry => {
         const name = [entry.first_name, entry.last_name].filter(Boolean).join(" ").trim() || entry.chat_title || "";
         return name !== "" && isNaN(name) && name !== "—";
