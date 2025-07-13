@@ -312,7 +312,7 @@ function loadLeaderboard(tabKey) {
     .then(data => {
       console.log("DEBUG Leaderboard API response:", data);
       const scores = (data.scores || []).filter(entry => {
-        const name = [entry.first_name, entry.last_name].filter(Boolean).join(" ").trim() || entry.chat_title || "";
+        //const name = [entry.first_name, entry.last_name].filter(Boolean).join(" ").trim() || entry.chat_title || "";
         //return name !== "" && isNaN(name) && name !== "—";
       });
       console.log("DEBUG Number of filtered scores:", scores.length);
