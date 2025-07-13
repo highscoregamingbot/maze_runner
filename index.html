@@ -244,6 +244,7 @@ body.fullscreen .ui-overlay {
 
       const chatId = getDecodedChatId();
       const gameId = getGameIdFromUrl();
+      const initData = Telegram.WebApp.initDataUnsafe || {};
       const telegramId = initData.user?.id || "";
       const username = initData.user?.username || "";
       const firstName = initData.user?.first_name || "";
