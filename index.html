@@ -183,7 +183,28 @@ body.fullscreen #dummy-canvas-container {
 body.fullscreen .ui-overlay {
   transform: translateY(100%);
 }
+.leaderboard-scroll-container {
+  max-height: 350px;
+  overflow-y: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
+#leaderboard {
+  width: 100%;
+  max-height: 100%;
+  overflow-y: visible;
+}
+
+/* --- ANIMATION SUPPORT --- */
+body.fullscreen #dummy-canvas-container {
+  z-index: 10;
+}
+body.fullscreen .ui-overlay {
+  transform: translateY(100%);
+}
     </style>
   </head>
   <body>
