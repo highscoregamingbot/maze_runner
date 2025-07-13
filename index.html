@@ -237,9 +237,10 @@ body.fullscreen .ui-overlay {
         return "";
       }
       const chatId = getDecodedChatId();
-      function getGameIdFromUrl() {
-        let parts = window.location.pathname.split("/").filter(Boolean);
-        return parts.length > 0 ? parts[0] : "";
+      let gameId = "";
+      function setGameId(id) {
+        gameId = id;
+        loadLeaderboard("leaderboard");
       }
       const initData = Telegram.WebApp.initDataUnsafe || {};
       const chatId = getDecodedChatId();
