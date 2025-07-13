@@ -226,14 +226,17 @@ body.fullscreen .ui-overlay {
       };
 
       function getDecodedChatId() {
-        const initData = Telegram.WebApp.initDataUnsafe || {};
-        if (initData.start_param) {
-          let b64 = initData.start_param.replace(/-/g, '+').replace(/_/g, '/');
+        // Haal base64-param direct uit de URL
+        const params = new URLSearchParams(window.location.search);
+        const param = params.get('startapp') || params.get('start_param');
+        if (param) {
+          let b64 = param.replace(/-/g, '+').replace(/_/g, '/');
           while (b64.length % 4) b64 += '=';
           try { return atob(b64); } catch (e) { return ""; }
         }
         return "";
       }
+      const chatId = getDecodedChatId();
       function getGameIdFromUrl() {
         let parts = window.location.pathname.split("/").filter(Boolean);
         return parts.length > 0 ? parts[0] : "";
