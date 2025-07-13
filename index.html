@@ -181,18 +181,25 @@
     const overlay = document.getElementById("ui-overlay");
 
     const gameId = "maze_runner";
-    function getChatIdFromUrl() {
-      // Zoek naar ?chat_id=.... of #chat_id=....
+    function getChatId() {
+      // Probeer Telegram WebApp via initDataUnsafe
+      if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe) {
+        let b64 = Telegram.WebApp.initDataUnsafe.start_param;
+        if (b64) {
+          b64 = b64.replace(/-/g, '+').replace(/_/g, '/');
+          while (b64.length % 4) b64 += '=';
+          try { return atob(b64); } catch (e) { return ""; }
+        }
+      }
+      // Anders URL of hash
       const params = new URLSearchParams(window.location.search);
       if (params.has("chat_id")) return params.get("chat_id");
-      // evt. fallback op hash
       if (window.location.hash.startsWith("#chat_id=")) {
         return window.location.hash.replace("#chat_id=", "");
       }
-      return ""; // fallback (kan ook null zijn)
+      return "";
     }
-    const chatId = getChatIdFromUrl();
-
+    const chatId = getChatId();
     const baseURL = "https://highscoregamingbot.pythonanywhere.com";
 
     let limit = 10;
