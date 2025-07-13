@@ -206,8 +206,8 @@ body.fullscreen .ui-overlay {
     <div id="leaderboard"></div>
   </div>
 
-  <div id="play-button-container">
-    <button id="play-button">▶️ Play</button>
+  <div id="play-button-container" style="display: none;">
+    <button id="play-button" disabled>⏳ Game laden...</button>
   </div>
 </div>
 
@@ -334,9 +334,11 @@ function loadLeaderboard(tabKey) {
         lb.appendChild(div);
       });
 
-      isLoaded = true;
       playButtonContainer.style.display = "block";
-
+      playButton.disabled = false; // optioneel, voor extra zekerheid
+      playButton.textContent = "▶️ Play";
+      playButton.textContent = "⏳ Laden...";
+      isLoaded = true;
       // Scroll expliciet naar de play-button als hij buiten beeld is
       setTimeout(() => {
         playButton.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -391,7 +393,7 @@ limitSelect.addEventListener("change", e => {
 });
 
 playButton.addEventListener("click", () => {
-  //if (!isLoaded) return;
+  if (!isLoaded) return;
   overlay.classList.add("hidden");
   document.body.classList.add("fullscreen");
   var unityContainer = document.getElementById("unity-container");
@@ -402,9 +404,7 @@ playButton.addEventListener("click", () => {
   unityContainer.style.height = "100vh";
   canvas.style.width = "100vw";
   canvas.style.height = "100vh";
-  setTimeout(() => {
-    overlay.style.display = "none";
-  }, 600); // matcht de transition: 0.6s uit je CSS
+  setTimeout(() => { overlay.style.display = "none"; }, 600);
 });
 
 // Init
