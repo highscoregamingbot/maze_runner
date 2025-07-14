@@ -368,6 +368,7 @@ function loadLeaderboard(tabKey) {
         if (rank === 1) rankSpan.textContent += " 🥇";
         else if (rank === 2) rankSpan.textContent += " 🥈";
         else if (rank === 3) rankSpan.textContent += " 🥉";
+        else                 rankSpan.textContent = rank.toString();
 
         // 👤 Naam + avatar
         const nameSpan = document.createElement("span");
