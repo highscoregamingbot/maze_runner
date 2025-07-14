@@ -92,18 +92,22 @@ body {
   box-sizing: border-box;
 }
 .entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 8px 0;
+  font-size: 18px;
+  color: #fff;
+  text-shadow: 0 0 5px #f0f8;
   width: 100%;
   box-sizing: border-box;
 }
-.entry {
-  margin: 10px 0;
-  font-size: 18px;
-  color: #fff;
-  display: grid;
-  grid-template-columns: 30px 1fr auto;
-  gap: 10px;
-  align-items: center;
-  text-shadow: 0 0 5px #f0f8;
+.entry span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .entry:nth-child(1) {
   color: gold;
