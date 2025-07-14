@@ -94,8 +94,8 @@ body {
 .entry {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  justify-content: flex-start;
+  gap: 12px;
   margin: 8px 0;
   font-size: 18px;
   color: #fff;
@@ -382,8 +382,9 @@ function loadLeaderboard(tabKey) {
         else if (rank === 3) rankSpan.textContent += " 🥉";
 
         // 👤 Naam + avatar
-        const nameWrapper = document.createElement("span");
-        nameWrapper.className = "name-wrapper";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = [entry.first_name, entry.last_name].filter(Boolean).join(" ") || entry.username || entry.chat_title || "—";
+        nameSpan.style.flexGrow = "1";
 
         const avatar = document.createElement("div");
         avatar.className = "avatar";
@@ -411,9 +412,10 @@ function loadLeaderboard(tabKey) {
         const scoreSpan = document.createElement("span");
         scoreSpan.textContent = `${entry.score ?? entry.points ?? 0}`;
 
-        // Voeg alles toe aan de entry-div
+        // Voeg alles toe aan 
         div.appendChild(rankSpan);
-        div.appendChild(nameWrapper);
+        div.appendChild(avatar);
+        div.appendChild(nameSpan);
         div.appendChild(scoreSpan);
 
         lb.appendChild(div);
