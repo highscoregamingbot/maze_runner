@@ -127,8 +127,14 @@ body {
   white-space: nowrap;
   flex-grow: 1;
   min-width: 0;
-  max-width: 160px;  /* Pas aan voor jouw gewenste breedte! */
+  max-width: 200px;  /* Pas aan voor jouw gewenste breedte! */
   display: inline-block;
+}
+.medal-emoji {
+  font-size: 30px;    /* Maak groter of kleiner naar wens */
+  line-height: 1;
+  margin-right: 2px;
+  vertical-align: middle;
 }
 
 /* --- SELECT DROPDOWN --- */
@@ -372,12 +378,16 @@ function loadLeaderboard(tabKey) {
         // 🔢 Plek met eventueel medaille
         const rankSpan = document.createElement("span");
         rankSpan.className = "rank-number";
-        rankSpan.textContent = rank.toString();
+        if (rank === 1) {
+          rankSpan.innerHTML = '<span class="medal-emoji">🥇</span>';
+        } else if (rank === 2) {
+          rankSpan.innerHTML = '<span class="medal-emoji">🥈</span>';
+        } else if (rank === 3) {
+          rankSpan.innerHTML = '<span class="medal-emoji">🥉</span>';
+        } else {
+          rankSpan.textContent = rank.toString();
+        }
 
-        if (rank === 1)      rankSpan.textContent = "🥇";
-        else if (rank === 2) rankSpan.textContent = "🥈";
-        else if (rank === 3) rankSpan.textContent = "🥉";
-        else                 rankSpan.textContent = rank.toString();
 
 
         // 👤 Naam + avatar
