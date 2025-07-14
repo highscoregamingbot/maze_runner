@@ -403,11 +403,6 @@ function loadLeaderboard(tabKey) {
         avatar.style.backgroundSize = "cover";
         avatar.style.backgroundPosition = "center";
 
-        const nameSpan = document.createElement("span");
-        nameSpan.textContent = [entry.first_name, entry.last_name].filter(Boolean).join(" ") || entry.username || entry.chat_title || "—";
-        nameWrapper.appendChild(avatar);
-        nameWrapper.appendChild(nameSpan);
-
         // 💯 Score
         const scoreSpan = document.createElement("span");
         scoreSpan.textContent = `${entry.score ?? entry.points ?? 0}`;
