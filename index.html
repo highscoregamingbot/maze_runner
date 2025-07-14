@@ -81,19 +81,7 @@ body {
 }
 
 /* --- LEADERBOARD --- */
-#leaderboard-current {
-  overflow: visible;
-  width: 100%;
-  max-width: 600px;
-  padding: 10px 5vw;
-  margin: 0 auto;
-  background: rgba(40, 0, 80, 0.6);
-  border-radius: 16px;
-  box-shadow: 0 0 25px #f0f8;
-  box-sizing: border-box;
-}
-#leaderboard-next {
-  overflow: visible;
+#leaderboard {
   width: 100%;
   max-width: 600px;
   padding: 10px 5vw;
@@ -235,8 +223,6 @@ body.fullscreen .ui-overlay {
   transform: translateY(100%);
 }
 .leaderboard-scroll-container {
-  position: relative;
-  overflow: hidden;
   flex-grow: 1;
   overflow-y: auto;
   width: 100%;
@@ -246,25 +232,10 @@ body.fullscreen .ui-overlay {
   flex-direction: column;
   align-items: center;
 }
-.leaderboard-slide-track {
+
+#leaderboard {
   width: 100%;
-  display: flex;
-  transition: transform 0.45s cubic-bezier(.68,-0.55,.27,1.55);
-  will-change: transform;
-}
-.leaderboard-slide {
-  min-width: 100%;
-  box-sizing: border-box;
-  /* alles wat je al voor #leaderboard had */
-}
-.slide-left {
-  transform: translateX(-100%);
-}
-.slide-right {
-  transform: translateX(100%);
-}
-.slide-reset {
-  transform: translateX(0%);
+  overflow: visible;
 }
 
 /* --- ANIMATION SUPPORT --- */
@@ -305,12 +276,8 @@ html, body {
       <option value="20">Top 20</option>
       <option value="50">Top 50</option>
     </select>
-    <div class="leaderboard-slide-track">
-      <div class="leaderboard-slide" id="leaderboard-current"></div>
-      <div class="leaderboard-slide" id="leaderboard-next"></div>
-    </div>
+    <div id="leaderboard"></div>
   </div>
-
 
   <div id="play-button-container" style="display: none;">
     <button id="play-button" disabled>⏳ Game laden...</button>
@@ -332,101 +299,6 @@ html, body {
       };
       const playButton = document.getElementById("play-button");
       const playButtonContainer = document.getElementById("play-button-container");
-      const slideTrack = document.querySelector('.leaderboard-slide-track');
-      const lbCurrent = document.getElementById("leaderboard-current");
-      const lbNext = document.getElementById("leaderboard-next");
-      
-      // Laad eerste leaderboard in de "current" slide:
-      function initialLoad() {
-  const endpoints = buildEndpoints();
-  fetch(baseURL + endpoints.leaderboard)
-    .then(res => res.json())
-    .then(data => {
-      const scores = (data.scores || []).filter(entry => {
-        const name = [entry.first_name, entry.last_name].filter(Boolean).join(" ").trim() || entry.chat_title || "";
-        return name !== "" && isNaN(name) && name !== "—";
-      });
-      renderLeaderboard(lbCurrent, scores, "leaderboard");
-    });
-}
-
-      function renderLeaderboard(lbElement, scores, tabKey = "leaderboard") {
-  lbElement.innerHTML = "";
-  if (scores.length === 0) {
-    lbElement.textContent = "No scores yet!";
-    return;
-  }
-  scores.forEach((entry, index) => {
-    const div = document.createElement("div");
-    div.className = "entry";
-
-    // Rank / medaille
-    const rank = index + 1;
-    const rankSpan = document.createElement("span");
-    rankSpan.className = "rank-number";
-    // Medailles? Kies een van deze opties:
-    // rankSpan.textContent = rank.toString();
-    if (rank === 1)      rankSpan.innerHTML = '<span class="medal-emoji">🥇</span>';
-    else if (rank === 2) rankSpan.innerHTML = '<span class="medal-emoji">🥈</span>';
-    else if (rank === 3) rankSpan.innerHTML = '<span class="medal-emoji">🥉</span>';
-    else                 rankSpan.textContent = rank.toString();
-
-    // Avatar
-    const avatar = document.createElement("div");
-    avatar.className = "avatar";
-    if (tabKey === "chat" && entry.chat_title && !/^\d+$/.test(entry.chat_title)) {
-      avatar.style.backgroundImage = `url('https://highscoregamingbot.pythonanywhere.com/group_avatar/${entry.chat_id}')`;
-    } else if (entry.username) {
-      avatar.style.backgroundImage = `url('https://t.me/i/userpic/320/${entry.username}.jpg')`;
-    } else {
-      avatar.textContent = (entry.first_name || "?")[0];
-      avatar.style.background = "#444";
-      avatar.style.color = "#f0f";
-      avatar.style.textAlign = "center";
-      avatar.style.lineHeight = "32px";
-    }
-    avatar.style.backgroundSize = "cover";
-    avatar.style.backgroundPosition = "center";
-    
-      function animateSwipe(newTabKey, direction = 'left') {
-  const endpoints = buildEndpoints();
-  fetch(baseURL + endpoints[newTabKey])
-    .then(res => res.json())
-    .then(data => {
-      // Filtering zoals initialLoad
-      const scores = (data.scores || []).filter(entry => {
-        const name = [entry.first_name, entry.last_name].filter(Boolean).join(" ").trim() || entry.chat_title || "";
-        return name !== "" && isNaN(name) && name !== "—";
-      });
-      renderLeaderboard(lbNext, scores, newTabKey);
-
-      // 2. Zet track naar beginpositie
-      slideTrack.classList.remove('slide-left', 'slide-right');
-      slideTrack.classList.add('slide-reset');
-
-      // 3. Forceer reflow (trucje)
-      void slideTrack.offsetWidth;
-
-      // 4. Start animatie
-      slideTrack.classList.remove('slide-reset');
-      slideTrack.classList.add(direction === 'left' ? 'slide-left' : 'slide-right');
-
-      // 5. Na animatie kopieer naar current
-      setTimeout(() => {
-        lbCurrent.innerHTML = lbNext.innerHTML;
-        slideTrack.classList.remove('slide-left', 'slide-right');
-        slideTrack.classList.add('slide-reset');
-      }, 450);
-    })
-    .catch(err => {
-      lbNext.innerHTML = "<div style='padding:2em;color:#f55;'>Failed to load leaderboard.</div>";
-      setTimeout(() => {
-        lbCurrent.innerHTML = lbNext.innerHTML;
-        slideTrack.classList.remove('slide-left', 'slide-right');
-        slideTrack.classList.add('slide-reset');
-      }, 450);
-    });
-}
 
       function getDecodedChatId() {
         // 1. Eerst uit URL
@@ -485,6 +357,7 @@ document.body.appendChild(script);
         // Optioneel: canvas herstr.
         // (Alleen als je dat wilt na Play)
       });
+      const lb = document.getElementById("leaderboard");
 const tabs = document.querySelectorAll(".tab");
 const limitSelect = document.getElementById("limit-select");
 const overlay = document.getElementById("ui-overlay");
@@ -501,6 +374,49 @@ function buildEndpoints() {
     chat: `/alltime_chat_leaderboard?game_id=${gameId}&limit=${limit}`
   };
 }
+
+function loadLeaderboard(tabKey) {
+  lb.innerHTML = "Loading...";
+  const endpoints = buildEndpoints();
+
+  fetch(baseURL + endpoints[tabKey])
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    })
+    .then(data => {
+      console.log("DEBUG Leaderboard API response:", data);
+      const scores = (data.scores || []).filter(entry => {
+        const name = [entry.first_name, entry.last_name].filter(Boolean).join(" ").trim() || entry.chat_title || "";
+        return name !== "" && isNaN(name) && name !== "—";
+      });
+      lb.innerHTML = "";
+
+      if (scores.length === 0) {
+        lb.textContent = "No scores yet!";
+        return;
+      }
+
+      scores.forEach((entry, index) => {
+        const div = document.createElement("div");
+        div.className = "entry";
+
+        const rank = index + 1;
+
+        // 🔢 Plek met eventueel medaille
+        const rankSpan = document.createElement("span");
+        rankSpan.className = "rank-number";
+        if (rank === 1) {
+          rankSpan.innerHTML = '<span class="medal-emoji">🥇</span>';
+        } else if (rank === 2) {
+          rankSpan.innerHTML = '<span class="medal-emoji">🥈</span>';
+        } else if (rank === 3) {
+          rankSpan.innerHTML = '<span class="medal-emoji">🥉</span>';
+        } else {
+          rankSpan.textContent = rank.toString();
+        }
+
+
 
         // 👤 Naam + avatar
         const nameSpan = document.createElement("span");
@@ -534,6 +450,8 @@ function buildEndpoints() {
         div.appendChild(avatar);
         div.appendChild(nameSpan);
         div.appendChild(scoreSpan);
+
+        lb.appendChild(div);
       });
 
       // Scroll expliciet naar de play-button als hij buiten beeld is
@@ -542,18 +460,21 @@ function buildEndpoints() {
       }, 300);
     })
     .catch(err => {
+      lb.textContent = "❌ Fout bij laden";
       console.error("Fetch error:", err);
     });
 }
 
 // Tabs klikken
-tabs.forEach((btn, i) => {
+tabs.forEach(btn => {
   btn.addEventListener("click", () => {
-    const activeIndex = [...tabs].findIndex(t => t.classList.contains("active"));
-    const direction = i > activeIndex ? 'left' : 'right';
-    animateSwipe(btn.dataset.tab, direction);
     document.querySelector(".tab.active")?.classList.remove("active");
     btn.classList.add("active");
+    lb.classList.add("fade-out");
+    setTimeout(() => {
+      loadLeaderboard(btn.dataset.tab);
+      lb.classList.remove("fade-out");
+    }, 300);
   });
 });
 
@@ -571,7 +492,11 @@ document.getElementById("ui-overlay").addEventListener("touchend", e => {
   if (newIndex !== activeIndex) {
     tabArr[activeIndex].classList.remove("active");
     tabArr[newIndex].classList.add("active");
-    animateSwipe(tabArr[newIndex].dataset.tab, newIndex > activeIndex ? "left" : "right");
+    lb.classList.add("fade-out");
+    setTimeout(() => {
+      loadLeaderboard(tabArr[newIndex].dataset.tab);
+      lb.classList.remove("fade-out");
+    }, 300);
   }
 });
 
@@ -579,9 +504,8 @@ document.getElementById("ui-overlay").addEventListener("touchend", e => {
 limitSelect.addEventListener("change", e => {
   limit = parseInt(e.target.value);
   const activeTab = document.querySelector(".tab.active")?.dataset.tab || "leaderboard";
-  animateSwipe(activeTab, "left");
+  loadLeaderboard(activeTab);
 });
-
 
 playButton.addEventListener("click", () => {
   if (!isLoaded) return;
@@ -597,10 +521,10 @@ playButton.addEventListener("click", () => {
   canvas.style.height = "100vh";
   setTimeout(() => { overlay.style.display = "none"; }, 600);
 });
-      
+
 // Init
-initialLoad();
-    
+loadLeaderboard("leaderboard");
+
     </script>
   </body>
 </html>
