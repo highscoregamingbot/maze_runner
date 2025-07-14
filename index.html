@@ -121,17 +121,22 @@ body {
   color: #cd7f32;
   font-weight: bold;
 }
+.entry:nth-child(n+4) .name-span {
+  color: #00f0ff;
+  font-weight: bold;
+  text-shadow: 0 0 6px #00f0ff90, 0 0 2px #00f0ff60;
+}
 .name-span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   flex-grow: 1;
   min-width: 0;
-  max-width: 220px;  /* Pas aan voor jouw gewenste breedte! */
+  max-width: 240px;  /* Pas aan voor jouw gewenste breedte! */
   display: inline-block;
 }
 .medal-emoji {
-  font-size: 26px;    /* Maak groter of kleiner naar wens */
+  font-size: 24px;    /* Maak groter of kleiner naar wens */
   line-height: 1;
   margin-right: 2px;
   vertical-align: middle;
