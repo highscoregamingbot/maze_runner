@@ -364,8 +364,6 @@ function buildEndpoints() {
 function loadLeaderboard(tabKey) {
   lb.innerHTML = "Loading...";
   const endpoints = buildEndpoints();
-  playButton.disabled = true;
-  playButton.textContent = "⏳ Loading...";
 
   fetch(baseURL + endpoints[tabKey])
     .then(res => {
