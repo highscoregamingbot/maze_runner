@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <title>Maze Runner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+     /* --- IMPORT --- */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+/* --- BODY --- */
+body {
+  margin: 0;
+  font-family: 'Orbitron', sans-serif;
+  background: radial-gradient(ellipse at top, #1a001a 0%, #0a0010 100%);
+  color: #fff;
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* --- FULLSCREEN CANVAS --- */
+#unity-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #111;
+  z-index: 0;
+}
+#unity-canvas {
+  width: 100%;
+  height: 100%;
+  background: #222;
+  display: block;
+  border: none;
+}
+
+/* --- UI OVERLAY --- */
+.ui-overlay {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 75%;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  backdrop-filter: blur(8px);
+  background: rgba(30, 0, 60, 0.6);
+  transition: transform 0.6s ease;
+  overflow: hidden;
+}
+.ui-overlay.hidden {
+  transform: translateY(100%);
+}
+
+/* --- HEADER / TABS --- */
+.tabs {
+  display: flex;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  border-bottom: 2px solid #222;
+}
+.tab {
+  padding: 12px 20px;
+  cursor: pointer;
+  font-size: 16px;
+  color: #ccc;
+  transition: all 0.3s ease;
+  border-bottom: 3px solid transparent;
+}
+.tab:hover {
+  color: #fff;
+  border-color: #f0f;
+}
+.tab.active {
+  color: #fff;
+  border-color: #f0f;
+  text-shadow: 0 0 6px #f0f;
+}
+
+/* --- LEADERBOARD --- */
+#leaderboard {
+  padding: 20px;
+  max-width: 500px;
+  margin: 10px auto;
+  background: rgba(40, 0, 80, 0.6);
+  border-radius: 16px;
+  box-shadow: 0 0 25px #f0f8;
+  overflow-y: visible;
+  flex-grow: 1;
+}
+.entry {
+  margin: 10px 0;
+  font-size: 18px;
+  color: #fff;
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  text-shadow: 0 0 5px #f0f8;
+}
+.entry:nth-child(1) {
+  color: gold;
+  font-weight: bold;
+}
+.entry:nth-child(1)::before {
+  content: "🥇";
+  text-align: center;
+}
+.entry:nth-child(2) {
+  color: silver;
+  font-weight: bold;
+}
+.entry:nth-child(2)::before {
+  content: "🥈";
+  text-align: center;
+}
+.entry:nth-child(3) {
+  color: #cd7f32;
+  font-weight: bold;
+}
+.entry:nth-child(3)::before {
+  content: "🥉";
+  text-align: center;
+}
+
+/* --- SELECT DROPDOWN --- */
+#limit-select {
+  margin: 10px auto;
+  display: block;
+  background: #111;
+  color: #f0f;
+  font-family: 'Orbitron', sans-serif;
+  border: 1px solid #f0f;
+  border-radius: 8px;
+  padding: 6px 12px;
+}
+
+/* --- PLAY BUTTON --- */
+#play-button-container {
+  margin: 20px auto;
+  text-align: center;
+}
+#play-button {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 18px;
+  padding: 12px 28px;
+  color: #fff;
+  background: linear-gradient(135deg, #f0f, #a0f);
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 0 20px #f0f8;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+#play-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 25px #f0fb;
+}
+
+.rank-number {
+  font-size: 18px;
+  width: 26px;
+  text-align: center;
+  opacity: 0.7;
+  font-family: 'Orbitron', sans-serif;
+}
+
+/* --- PROFILE PICTURE PLACEHOLDER --- */
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #333;
+  display: inline-block;
+  margin-right: 10px;
+  vertical-align: middle;
+  box-shadow: 0 0 6px #f0f5;
+  grid-column: 1 / span 1;
+}
+
+/* --- ANIMATION SUPPORT --- */
+body.fullscreen #dummy-canvas-container {
+  z-index: 10;
+}
+body.fullscreen .ui-overlay {
+  transform: translateY(100%);
+}
+.leaderboard-scroll-container {
+  max-height: 350px;
+  overflow-y: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#leaderboard {
+  width: 100%;
+  max-height: 100%;
+  overflow-y: visible;
+}
+
+/* --- ANIMATION SUPPORT --- */
+body.fullscreen #dummy-canvas-container {
+  z-index: 10;
+}
+body.fullscreen .ui-overlay {
+  transform: translateY(100%);
+}
+    </style>
+  </head>
+  <body>
+    <div id="unity-container">
+      <canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
+    </div>
+    <div class="ui-overlay" id="ui-overlay">
+  <div class="tabs">
+    <div class="tab active" data-tab="leaderboard">🏆 Chat</div>
+    <div class="tab" data-tab="alltime">📘 All-time</div>
+    <div class="tab" data-tab="global">🌐 Global</div>
+    <div class="tab" data-tab="chat">💬 Top Chats</div>
+  </div>
+
+  <div class="leaderboard-scroll-container">
+    <select id="limit-select">
+      <option value="10">Top 10</option>
+      <option value="20">Top 20</option>
+      <option value="50">Top 50</option>
+    </select>
+    <div id="leaderboard"></div>
+  </div>
+
+  <div id="play-button-container" style="display: none;">
+    <button id="play-button" disabled>⏳ Game laden...</button>
+  </div>
+</div>
+
+    <script>
+      var canvas = document.getElementById("unity-canvas");
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/mazerunner.loader.js";
+      var config = {
+        dataUrl: buildUrl + "/mazerunner.data",
+        frameworkUrl: buildUrl + "/mazerunner.framework.js",
+        codeUrl: buildUrl + "/mazerunner.wasm",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "Highscore Gaming",
+        productName: "Maze",
+        productVersion: "0.1"
+      };
+
+      function getDecodedChatId() {
+        // 1. Eerst uit URL
+        const urlParams = new URLSearchParams(window.location.search);
+        let param = urlParams.get('startapp') || urlParams.get('start_param');
+        // 2. Anders uit Telegram initData
+        if (!param && Telegram.WebApp && Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.start_param) {
+          param = Telegram.WebApp.initDataUnsafe.start_param;
+        }
+        if (param) {
+          let b64 = param.replace(/-/g, '+').replace(/_/g, '/');
+          while (b64.length % 4) b64 += '=';
+          try { return atob(b64); } catch (e) { return ""; }
+        }
+        return "";
+      }
+      const chatId = getDecodedChatId();
+      const gameId = "maze_runner";
+      const initData = Telegram.WebApp.initDataUnsafe || {};
+      const telegramId = initData.user?.id || "";
+      const username = initData.user?.username || "";
+      const firstName = initData.user?.first_name || "";
+      const lastName = initData.user?.last_name || "";
+      const unityData = `${telegramId};${username};${chatId};${firstName};${lastName};${gameId}`;
+
+      // ---- Unity direct laden bij paginalaad ----
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          // Optioneel: load bar visuals
+        }).then((unityInstance) => {
+          // ---- Telegram-data direct sturen ----
+          unityInstance.SendMessage("TelegramParams", "SetTelegramUserData", unityData);
+
+          // ---- Play-knop nu tonen ----
+          document.getElementById("play-button-container").style.display = "block";
+        });
+      };
+      document.body.appendChild(script);
+      // ---- Einde Unity direct laden ----
+
+      window.addEventListener('resize', function() {
+        // Optioneel: canvas herstr.
+        // (Alleen als je dat wilt na Play)
+      });
+      const lb = document.getElementById("leaderboard");
+const tabs = document.querySelectorAll(".tab");
+const limitSelect = document.getElementById("limit-select");
+const playButton = document.getElementById("play-button");
+const playButtonContainer = document.getElementById("play-button-container");
+const overlay = document.getElementById("ui-overlay");
+const baseURL = "https://highscoregamingbot.pythonanywhere.com";
+
+let limit = 10;
+let isLoaded = false;
+
+function buildEndpoints() {
+  return {
+    leaderboard: `/leaderboard?game_id=${gameId}&chat_id=${chatId}&limit=${limit}`,
+    alltime: `/alltime_leaderboard?game_id=${gameId}&chat_id=${chatId}&limit=${limit}`,
+    global: `/global_alltime_leaderboard?game_id=${gameId}&limit=${limit}`,
+    chat: `/alltime_chat_leaderboard?game_id=${gameId}&limit=${limit}`
+  };
+}
+
+function loadLeaderboard(tabKey) {
+  lb.innerHTML = "Loading...";
+  const endpoints = buildEndpoints();
+  playButtonContainer.style.display = "block";
+  playButton.disabled = true;
+  playButton.textContent = "⏳ Loading...";
+
+  fetch(baseURL + endpoints[tabKey])
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    })
+    .then(data => {
+      console.log("DEBUG Leaderboard API response:", data);
+      const scores = (data.scores || []).filter(entry => {
+        const name = [entry.first_name, entry.last_name].filter(Boolean).join(" ").trim() || entry.chat_title || "";
+        return name !== "" && isNaN(name) && name !== "—";
+      });
+      lb.innerHTML = "";
+
+      if (scores.length === 0) {
+        lb.textContent = "No scores yet!";
+        return;
+      }
+
+      scores.forEach((entry, index) => {
+        const div = document.createElement("div");
+        div.className = "entry";
+        
+        const rankSpan = document.createElement("span");
+        rankSpan.className = "rank-number";
+        rankSpan.textContent = (index + 1).toString();
+        div.appendChild(rankSpan);
+        
+        const avatar = document.createElement("div");
+        avatar.className = "avatar";
+
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = `${[entry.first_name, entry.last_name].filter(Boolean).join(" ") || entry.username || entry.chat_title || "—"}`;
+
+        const scoreSpan = document.createElement("span");
+        scoreSpan.textContent = `${entry.score ?? entry.points ?? 0}`;
+
+        if (index === 0) div.classList.add("first");
+        if (index === 1) div.classList.add("second");
+        if (index === 2) div.classList.add("third");
+
+        div.appendChild(avatar);
+        div.appendChild(nameSpan);
+        div.appendChild(scoreSpan);
+
+        lb.appendChild(div);
+      });
+
+// Na het vullen van de leaderboard (dus vlak voor isLoaded = true)
+playButton.disabled = false;
+playButton.textContent = "▶️ Play";
+isLoaded = true;
+
+      // Scroll expliciet naar de play-button als hij buiten beeld is
+      setTimeout(() => {
+        playButton.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 300);
+    })
+    .catch(err => {
+      lb.textContent = "❌ Fout bij laden";
+      console.error("Fetch error:", err);
+    });
+}
+
+// Tabs klikken
+tabs.forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelector(".tab.active")?.classList.remove("active");
+    btn.classList.add("active");
+    lb.classList.add("fade-out");
+    setTimeout(() => {
+      loadLeaderboard(btn.dataset.tab);
+      lb.classList.remove("fade-out");
+    }, 300);
+  });
+});
+
+// Swipe support
+let startX = 0, endX = 0;
+document.getElementById("ui-overlay").addEventListener("touchstart", e => startX = e.changedTouches[0].screenX);
+document.getElementById("ui-overlay").addEventListener("touchend", e => {
+  endX = e.changedTouches[0].screenX;
+  const diff = endX - startX;
+  const tabArr = Array.from(tabs);
+  const activeIndex = tabArr.findIndex(t => t.classList.contains("active"));
+  let newIndex = activeIndex;
+  if (diff < -50 && activeIndex < tabArr.length - 1) newIndex++;
+  if (diff > 50 && activeIndex > 0) newIndex--;
+  if (newIndex !== activeIndex) {
+    tabArr[activeIndex].classList.remove("active");
+    tabArr[newIndex].classList.add("active");
+    lb.classList.add("fade-out");
+    setTimeout(() => {
+      loadLeaderboard(tabArr[newIndex].dataset.tab);
+      lb.classList.remove("fade-out");
+    }, 300);
+  }
+});
+
+// Selectie wijzigen
+limitSelect.addEventListener("change", e => {
+  limit = parseInt(e.target.value);
+  const activeTab = document.querySelector(".tab.active")?.dataset.tab || "leaderboard";
+  loadLeaderboard(activeTab);
+});
+
+playButton.addEventListener("click", () => {
+  if (!isLoaded) return;
+  overlay.classList.add("hidden");
+  document.body.classList.add("fullscreen");
+  var unityContainer = document.getElementById("unity-container");
+  unityContainer.style.position = "fixed";
+  unityContainer.style.top = "0";
+  unityContainer.style.left = "0";
+  unityContainer.style.width = "100vw";
+  unityContainer.style.height = "100vh";
+  canvas.style.width = "100vw";
+  canvas.style.height = "100vh";
+  setTimeout(() => { overlay.style.display = "none"; }, 600);
+});
+
+// Init
+loadLeaderboard("leaderboard");
+
+    </script>
+  </body>
+</html>
