@@ -357,6 +357,18 @@ function loadLeaderboard(tabKey) {
         const avatar = document.createElement("div");
         avatar.className = "avatar";
 
+        if (entry.username) {
+          avatar.style.backgroundImage = `url('https://t.me/i/userpic/320/${entry.username}.jpg')`;
+          avatar.style.backgroundSize = "cover";
+          avatar.style.backgroundPosition = "center";
+        } else {
+          avatar.textContent = (entry.first_name || "?")[0];
+          avatar.style.background = "#444";
+          avatar.style.color = "#f0f";
+          avatar.style.textAlign = "center";
+          avatar.style.lineHeight = "32px";
+        }
+
         const nameSpan = document.createElement("span");
         nameSpan.textContent = `${[entry.first_name, entry.last_name].filter(Boolean).join(" ") || entry.username || entry.chat_title || "—"}`;
 
