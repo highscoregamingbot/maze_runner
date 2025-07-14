@@ -126,13 +126,19 @@ body {
   font-weight: bold;
   text-shadow: 0 0 6px #00f0ff90, 0 0 2px #00f0ff60;
 }
+.score-span {
+  width: 56px;   /* Of minder als gewenst, experimenteer voor jouw breedte! */
+  text-align: right;
+  display: inline-block;
+  flex-shrink: 0;
+}
 .name-span {
+  flex: 1 1 0%;
+  min-width: 0;
+  max-width: 170px;   /* << NOG BETER: experimenteer hiermee voor perfecte fit */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  flex-grow: 1;
-  min-width: 0;
-  max-width: 240px;  /* Pas aan voor jouw gewenste breedte! */
   display: inline-block;
 }
 .medal-emoji {
@@ -436,8 +442,9 @@ function loadLeaderboard(tabKey) {
 
         // 💯 Score
         const scoreSpan = document.createElement("span");
+        scoreSpan.className = "score-span"; // <-- HIER toevoegen!
         scoreSpan.textContent = `${entry.score ?? entry.points ?? 0}`;
-
+        
         // Voeg alles toe aan 
         div.appendChild(rankSpan);
         div.appendChild(avatar);
