@@ -309,23 +309,32 @@ html, body {
       const unityData = `${telegramId};${username};${chatId};${firstName};${lastName};${gameId}`;
 
       // ---- Unity direct laden bij paginalaad ----
-      var script = document.createElement("script");
-      script.src = loaderUrl;
-      script.onload = () => {
-        createUnityInstance(canvas, config, (progress) => {
-          // Optioneel: load bar visuals
-        }).then((unityInstance) => {
-          // ---- Telegram-data direct sturen ----
-          unityInstance.SendMessage("TelegramParams", "SetTelegramUserData", unityData);
+      // Zet de playknop direct zichtbaar maar disabled, tekst "⏳ Loading..."
+playButtonContainer.style.display = "block";
+playButton.disabled = true;
+playButton.textContent = "⏳ Loading...";
 
-          // ---- Play-knop nu tonen en activeren ----
-          playButtonContainer.style.display = "block";
-          playButton.disabled = false;
-          playButton.textContent = "▶️ Play";
-          isLoaded = true;
-        });
-      };
-      document.body.appendChild(script);
+var script = document.createElement("script");
+script.src = loaderUrl;
+script.onload = () => {
+  createUnityInstance(canvas, config, (progress) => {
+    // evt. loading visuals
+  }).then((unityInstance) => {
+    // ---- Telegram-data direct sturen ----
+    unityInstance.SendMessage("TelegramParams", "SetTelegramUserData", unityData);
+
+    // Unity is geladen, tekst naar "⏳ Game starting..."
+    playButton.textContent = "⏳ Game starting...";
+
+    // Wacht 5 seconden extra, daarna knop activeren
+    setTimeout(() => {
+      playButton.disabled = false;
+      playButton.textContent = "▶️ Play";
+      isLoaded = true;
+    }, 5000);
+  });
+};
+document.body.appendChild(script);
       // ---- Einde Unity direct laden ----
 
       window.addEventListener('resize', function() {
