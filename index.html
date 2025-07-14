@@ -121,6 +121,15 @@ body {
   color: #cd7f32;
   font-weight: bold;
 }
+.name-span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-grow: 1;
+  min-width: 0;
+  max-width: 120px;  /* Pas aan voor jouw gewenste breedte! */
+  display: inline-block;
+}
 
 /* --- SELECT DROPDOWN --- */
 #limit-select {
@@ -372,8 +381,8 @@ function loadLeaderboard(tabKey) {
 
         // 👤 Naam + avatar
         const nameSpan = document.createElement("span");
+        nameSpan.className = "name-span";
         nameSpan.textContent = [entry.first_name, entry.last_name].filter(Boolean).join(" ") || entry.username || entry.chat_title || "—";
-        nameSpan.style.flexGrow = "1";
 
         const avatar = document.createElement("div");
         avatar.className = "avatar";
