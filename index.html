@@ -283,6 +283,8 @@ html, body {
         productName: "Maze",
         productVersion: "0.1"
       };
+      const playButton = document.getElementById("play-button");
+      const playButtonContainer = document.getElementById("play-button-container");
 
       function getDecodedChatId() {
         // 1. Eerst uit URL
@@ -344,8 +346,6 @@ document.body.appendChild(script);
       const lb = document.getElementById("leaderboard");
 const tabs = document.querySelectorAll(".tab");
 const limitSelect = document.getElementById("limit-select");
-const playButton = document.getElementById("play-button");
-const playButtonContainer = document.getElementById("play-button-container");
 const overlay = document.getElementById("ui-overlay");
 const baseURL = "https://highscoregamingbot.pythonanywhere.com";
 
