@@ -365,23 +365,29 @@ function loadLeaderboard(tabKey) {
       scores.forEach((entry, index) => {
         const div = document.createElement("div");
         div.className = "entry";
-        
+
+        const rank = index + 1;
+
+        // 🔢 Plek met eventueel medaille
         const rankSpan = document.createElement("span");
         rankSpan.className = "rank-number";
-        rankSpan.textContent = (index + 1).toString();
-        div.appendChild(rankSpan);
-        
+        rankSpan.textContent = rank.toString();
+
+        if (rank === 1) rankSpan.textContent += " 🥇";
+        else if (rank === 2) rankSpan.textContent += " 🥈";
+        else if (rank === 3) rankSpan.textContent += " 🥉";
+
+        // 👤 Naam + avatar
+        const nameWrapper = document.createElement("span");
+        nameWrapper.className = "name-wrapper";
+
         const avatar = document.createElement("div");
         avatar.className = "avatar";
 
         if (tabKey === "chat" && entry.chat_title && !/^\d+$/.test(entry.chat_title)) {
           avatar.style.backgroundImage = `url('https://highscoregamingbot.pythonanywhere.com/group_avatar/${entry.chat_id}')`;
-          avatar.style.backgroundSize = "cover";
-          avatar.style.backgroundPosition = "center";
         } else if (entry.username) {
           avatar.style.backgroundImage = `url('https://t.me/i/userpic/320/${entry.username}.jpg')`;
-          avatar.style.backgroundSize = "cover";
-          avatar.style.backgroundPosition = "center";
         } else {
           avatar.textContent = (entry.first_name || "?")[0];
           avatar.style.background = "#444";
@@ -389,19 +395,21 @@ function loadLeaderboard(tabKey) {
           avatar.style.textAlign = "center";
           avatar.style.lineHeight = "32px";
         }
+        avatar.style.backgroundSize = "cover";
+        avatar.style.backgroundPosition = "center";
 
         const nameSpan = document.createElement("span");
-        nameSpan.textContent = `${[entry.first_name, entry.last_name].filter(Boolean).join(" ") || entry.username || entry.chat_title || "—"}`;
+        nameSpan.textContent = [entry.first_name, entry.last_name].filter(Boolean).join(" ") || entry.username || entry.chat_title || "—";
+        nameWrapper.appendChild(avatar);
+        nameWrapper.appendChild(nameSpan);
 
+        // 💯 Score
         const scoreSpan = document.createElement("span");
         scoreSpan.textContent = `${entry.score ?? entry.points ?? 0}`;
 
-        if (index === 0) div.classList.add("first");
-        if (index === 1) div.classList.add("second");
-        if (index === 2) div.classList.add("third");
-
-        div.appendChild(avatar);
-        div.appendChild(nameSpan);
+        // Voeg alles toe aan de entry-div
+        div.appendChild(rankSpan);
+        div.appendChild(nameWrapper);
         div.appendChild(scoreSpan);
 
         lb.appendChild(div);
