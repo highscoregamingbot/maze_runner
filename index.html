@@ -357,7 +357,11 @@ function loadLeaderboard(tabKey) {
         const avatar = document.createElement("div");
         avatar.className = "avatar";
 
-        if (entry.username) {
+        if (tabKey === "chat" && entry.chat_title && !/^\d+$/.test(entry.chat_title)) {
+          avatar.style.backgroundImage = `url('https://highscoregamingbot.pythonanywhere.com/group_avatar/${entry.chat_id}')`;
+          avatar.style.backgroundSize = "cover";
+          avatar.style.backgroundPosition = "center";
+        } else if (entry.username) {
           avatar.style.backgroundImage = `url('https://t.me/i/userpic/320/${entry.username}.jpg')`;
           avatar.style.backgroundSize = "cover";
           avatar.style.backgroundPosition = "center";
