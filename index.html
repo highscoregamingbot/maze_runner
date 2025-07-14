@@ -318,8 +318,11 @@ html, body {
           // ---- Telegram-data direct sturen ----
           unityInstance.SendMessage("TelegramParams", "SetTelegramUserData", unityData);
 
-          // ---- Play-knop nu tonen ----
-          document.getElementById("play-button-container").style.display = "block";
+          // ---- Play-knop nu tonen en activeren ----
+          playButtonContainer.style.display = "block";
+          playButton.disabled = false;
+          playButton.textContent = "▶️ Play";
+          isLoaded = true;
         });
       };
       document.body.appendChild(script);
