@@ -522,7 +522,11 @@ limitSelect.addEventListener("change", e => {
 
 playButton.addEventListener("click", () => {
   if (!isLoaded) return;
+
+  // ✅ Verberg overlay en startscherm
   overlay.classList.add("hidden");
+  document.getElementById("start-screen").style.display = "none";
+
   document.body.classList.add("fullscreen");
   var unityContainer = document.getElementById("unity-container");
   unityContainer.style.position = "fixed";
@@ -532,7 +536,10 @@ playButton.addEventListener("click", () => {
   unityContainer.style.height = "100vh";
   canvas.style.width = "100vw";
   canvas.style.height = "100vh";
-  setTimeout(() => { overlay.style.display = "none"; }, 600);
+
+  setTimeout(() => {
+    overlay.style.display = "none";
+  }, 600);
 });
     </script>
   </body>
