@@ -388,7 +388,7 @@ document.body.appendChild(script);
         // Optioneel: canvas herstr.
         // (Alleen als je dat wilt na Play)
       });
-      const lb = document.getElementById("leaderboard");
+const lb = document.getElementById("leaderboard");
 const tabs = document.querySelectorAll(".tab");
 const limitSelect = document.getElementById("limit-select");
 const overlay = document.getElementById("ui-overlay");
@@ -499,8 +499,12 @@ function loadLeaderboard(tabKey) {
 // Tabs klikken
 tabs.forEach(btn => {
   btn.addEventListener("click", () => {
+    // ✅ Verberg start-scherm bij tab-click
+    document.getElementById("start-screen").style.display = "none";
+
     document.querySelector(".tab.active")?.classList.remove("active");
     btn.classList.add("active");
+
     lb.classList.add("fade-out");
     setTimeout(() => {
       loadLeaderboard(btn.dataset.tab);
