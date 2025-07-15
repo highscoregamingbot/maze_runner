@@ -160,6 +160,25 @@ body {
   padding: 6px 12px;
 }
 
+#start-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 70%;
+  text-align: center;
+}
+
+#start-logo {
+  max-width: 300px; /* Pas aan naar wens */
+  margin-bottom: 20px;
+}
+
+#start-text {
+  font-size: 20px;
+  color: #fff;
+}
+
 /* --- PLAY BUTTON --- */
 #play-button-container {
   height: 70px;
@@ -279,6 +298,11 @@ html, body {
     <div id="leaderboard"></div>
   </div>
 
+  <div id="start-screen">
+  <img src="logo.png" alt="Logo" id="start-logo">
+  <p id="start-text">Welcome at Highscore Gaming!</p>
+  </div>
+    
   <div id="play-button-container" style="display: none;">
     <button id="play-button" disabled>⏳ Game laden...</button>
   </div>
@@ -478,28 +502,6 @@ tabs.forEach(btn => {
   });
 });
 
-// Swipe support
-let startX = 0, endX = 0;
-document.getElementById("ui-overlay").addEventListener("touchstart", e => startX = e.changedTouches[0].screenX);
-document.getElementById("ui-overlay").addEventListener("touchend", e => {
-  endX = e.changedTouches[0].screenX;
-  const diff = endX - startX;
-  const tabArr = Array.from(tabs);
-  const activeIndex = tabArr.findIndex(t => t.classList.contains("active"));
-  let newIndex = activeIndex;
-  if (diff < -50 && activeIndex < tabArr.length - 1) newIndex++;
-  if (diff > 50 && activeIndex > 0) newIndex--;
-  if (newIndex !== activeIndex) {
-    tabArr[activeIndex].classList.remove("active");
-    tabArr[newIndex].classList.add("active");
-    lb.classList.add("fade-out");
-    setTimeout(() => {
-      loadLeaderboard(tabArr[newIndex].dataset.tab);
-      lb.classList.remove("fade-out");
-    }, 300);
-  }
-});
-
 // Selectie wijzigen
 limitSelect.addEventListener("change", e => {
   limit = parseInt(e.target.value);
@@ -521,10 +523,6 @@ playButton.addEventListener("click", () => {
   canvas.style.height = "100vh";
   setTimeout(() => { overlay.style.display = "none"; }, 600);
 });
-
-// Init
-loadLeaderboard("leaderboard");
-
     </script>
   </body>
 </html>
