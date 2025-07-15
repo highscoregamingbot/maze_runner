@@ -82,15 +82,15 @@ body {
 
 /* --- LEADERBOARD --- */
 #leaderboard {
-  width: calc(100% - 20px); /* Altijd iets van padding aan de randen */
-  padding: 10px;
+  width: 100%;
+  max-width: 600px;
+  padding: 10px 5vw;
   margin: 0 auto;
   background: rgba(40, 0, 80, 0.6);
   border-radius: 16px;
   box-shadow: 0 0 25px #f0f8;
   box-sizing: border-box;
 }
-      
 .entry {
   display: flex;
   align-items: center;
@@ -180,22 +180,14 @@ body {
 }
 
 #start-screen {
-  position: absolute;
-  top: 50px; /* hoogte van de tabs */
-  bottom: 70px; /* hoogte van de playknop */
-  left: 0;
-  right: 0;
+  flex-grow: 1;                 /* Vul alle ruimte tussen tabs en playbutton */
   overflow-y: auto;
-  padding: 20px 12px;
-  text-align: center;
-  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  max-width: 600px;
-  margin: 0 auto;
-  z-index: 2;
+  justify-content: center;
+  padding: 20px 12px;
+  text-align: center;
 }
 
 #start-logo {
@@ -243,7 +235,6 @@ body {
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-      
 #play-button:hover {
   transform: scale(1.05);
   box-shadow: 0 0 25px #f0fb;
@@ -256,28 +247,20 @@ body.fullscreen #dummy-canvas-container {
 body.fullscreen .ui-overlay {
   transform: translateY(100%);
 }
-      
 .leaderboard-scroll-container {
-  position: absolute;
-  top: 50px;     /* onder tabs */
-  bottom: 70px;  /* boven play button */
-  left: 0;
-  right: 0;
+  flex-grow: 1;
   overflow-y: auto;
-  padding: 10px 12px;
+  width: 100%;
+  padding: 10px 0;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
-  max-width: 600px;
-  margin: 0 auto;
 }
 
 #leaderboard {
   width: 100%;
-  padding: 10px 0;
   overflow: visible;
-  box-sizing: border-box;
 }
 
 /* --- ANIMATION SUPPORT --- */
