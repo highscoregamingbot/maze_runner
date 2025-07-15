@@ -94,15 +94,48 @@ body {
 .entry {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 12px;
+  justify-content: space-between;
   margin: 8px 0;
   font-size: 14px;
   color: #fff;
   text-shadow: 0 0 5px #f0f8;
   width: 100%;
   box-sizing: border-box;
+  gap: 12px;
 }
+
+.rank-number {
+  width: 24px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 0 6px #f0f5;
+}
+
+.name-span {
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 4px;
+}
+
+.score-span {
+  width: 56px;
+  flex-shrink: 0;
+  text-align: right;
+}
+      
 .entry span {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -126,21 +159,7 @@ body {
   font-weight: bold;
   text-shadow: 0 0 6px #00f0ff90, 0 0 2px #00f0ff60;
 }
-.score-span {
-  width: 56px;   /* Of minder als gewenst, experimenteer voor jouw breedte! */
-  text-align: right;
-  display: inline-block;
-  flex-shrink: 0;
-}
-.name-span {
-  flex: 1 1 0%;
-  min-width: 0;
-  max-width: 200px;   /* << NOG BETER: experimenteer hiermee voor perfecte fit */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: inline-block;
-}
+
 .medal-emoji {
   font-size: 20px;    /* Maak groter of kleiner naar wens */
   line-height: 1;
@@ -161,11 +180,13 @@ body {
 }
 
 #start-screen {
+  flex-grow: 1;                 /* Vul alle ruimte tussen tabs en playbutton */
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 95%;
+  padding: 20px 12px;
   text-align: center;
 }
 
@@ -217,35 +238,6 @@ body {
 #play-button:hover {
   transform: scale(1.05);
   box-shadow: 0 0 25px #f0fb;
-}
-
-.rank-number {
-  font-size: 20px;
-  width: 28px;
-  text-align: center;
-  opacity: 0.7;
-  font-family: 'Orbitron', sans-serif;
-  overflow: visible;
-}
-
-/* --- PROFILE PICTURE PLACEHOLDER --- */
-.avatar {
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
-  max-width: 32px;
-  max-height: 32px;
-  border-radius: 50%;
-  aspect-ratio: 1/1;         /* <-- Zorgt dat-ie ALTIJD vierkant is! */
-  background: #333;
-  display: inline-block;
-  margin-right: 10px;
-  vertical-align: middle;
-  box-shadow: 0 0 6px #f0f5;
-  background-size: cover;
-  background-position: center;
-  object-fit: cover;         /* <-- als je <img> ipv div gebruikt */
 }
 
 /* --- ANIMATION SUPPORT --- */
